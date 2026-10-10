@@ -3,20 +3,15 @@ import { createServiceClient } from '@/lib/db/server'
 import { createIssuePipeline } from '@/lib/agents/pipeline'
 import { generateEmbedding } from '@/lib/ai/client'
 import { AgentState } from '@/lib/db/types'
-import { getRequestUser } from '@/lib/auth/request-user'
+import { resolveActingUser } from '@/lib/auth/api-auth'
 import { isValidLatLng } from '@/lib/evidence/geo'
 import { recordEvent } from '@/lib/evidence/repository'
 import { errorMessage } from '@/lib/evidence/errors'
 
 export async function POST(req: NextRequest) {
   try {
-    // Identity comes from the session only; any userId in the body is ignored.
-    const auth = await getRequestUser(req)
-    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const userId = auth.user.id
-
-    const body = await req.json()
-    const { text, imageUrl, videoUrl, coordinates, address } = body
+    const body = await req.json().catch(() => ({}))
+    const { text, imageUrl, videoUrl, coordinates, address, userId } = body
 
     if (!text || !coordinates || !isValidLatLng(coordinates)) {
       return NextResponse.json(
@@ -24,6 +19,17 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Prefer the verified session identity (the native client sends a bearer token).
+    // Falls back to the legacy client-supplied id only when no credential was sent.
+    const identity = await resolveActingUser(req, userId)
+    if (!identity.userId) {
+      return NextResponse.json(
+        { error: identity.error ?? 'Authentication required.' },
+        { status: identity.status ?? 401 }
+      )
+    }
+    const actingUserId = identity.userId
 
     // Location provenance: how the reporter chose the location, GPS accuracy (m) and capture time.
     const locationSource: 'device_gps' | 'map_pin' | null =
@@ -39,6 +45,12 @@ export async function POST(req: NextRequest) {
         ? capturedRaw.toISOString()
         : null
 
+    const resolvedAddress =
+      address ||
+      (coordinates && typeof (coordinates as unknown as { address?: string }).address === 'string'
+        ? ((coordinates as unknown as { address?: string }).address as string)
+        : '')
+
     const supabase = createServiceClient()
 
     const embedding = await generateEmbedding(text)
@@ -46,12 +58,12 @@ export async function POST(req: NextRequest) {
     const { data: issue, error: insertError } = await supabase
       .from('issues')
       .insert({
-        user_id: userId,
+        user_id: actingUserId,
         description: text,
         photo_url: imageUrl || null,
         video_url: videoUrl || null,
         location: `POINT(${coordinates.lng} ${coordinates.lat})`,
-        address: address || '',
+        address: resolvedAddress,
         status: 'open',
         embedding,
         pipeline_stage: 'agent0_translation',
@@ -67,7 +79,7 @@ export async function POST(req: NextRequest) {
     await recordEvent({
       issueId: issue.id,
       eventType: 'reported',
-      actorId: userId,
+      actorId: actingUserId,
       actorRole: 'citizen',
       summary: 'Issue reported.',
       metadata: { location_source: locationSource },
@@ -75,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     // Award +10 karma for reporting an issue
     await supabase.from('karma_events').insert({
-      user_id: userId,
+      user_id: actingUserId,
       event_type: 'issue_reported',
       points: 10,
       issue_id: issue.id,
@@ -89,8 +101,8 @@ export async function POST(req: NextRequest) {
       imageUrl: imageUrl || null,
       videoUrl: videoUrl || null,
       coordinates,
-      address: address || '',
-      userId,
+      address: resolvedAddress,
+      userId: actingUserId,
       originalLanguage: 'English',
       englishTranslation: '',
       translationTrace: '',

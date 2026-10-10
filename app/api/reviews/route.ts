@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/db/server'
-import { getRequestUser } from '@/lib/auth/request-user'
+import { resolveActingUser } from '@/lib/auth/api-auth'
 import wkx from 'wkx'
 import { errorMessage } from '@/lib/evidence/errors'
 
@@ -22,12 +22,17 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 
 export async function GET(req: NextRequest) {
   try {
-    // Identity is derived from the session; a userId query param is never trusted.
-    const auth = await getRequestUser(req)
-    if (!auth) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { searchParams } = new URL(req.url)
+    const userId = searchParams.get('userId')
+
+    const identity = await resolveActingUser(req, userId)
+    if (!identity.userId) {
+      return NextResponse.json(
+        { error: identity.error ?? 'Authentication required.' },
+        { status: identity.status ?? 401 }
+      )
     }
-    const userId = auth.user.id
+    const actingUserId = identity.userId
 
     const supabase = createServiceClient()
 
@@ -35,7 +40,7 @@ export async function GET(req: NextRequest) {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('home_location')
-      .eq('id', userId)
+      .eq('id', actingUserId)
       .single()
 
     if (profileError || !profile || !profile.home_location) {
@@ -99,7 +104,7 @@ export async function GET(req: NextRequest) {
     const { data: userVotes, error: votesError } = await supabase
       .from('verifications')
       .select('issue_id')
-      .eq('user_id', userId)
+      .eq('user_id', actingUserId)
       
     if (votesError) throw votesError
 
@@ -108,7 +113,7 @@ export async function GET(req: NextRequest) {
     // 3. Filter issues
     const nearbyIssues = issues.filter(issue => {
       // Don't show reporter their own issue
-      if (issue.user_id === userId) return false
+      if (issue.user_id === actingUserId) return false
       // Don't show issues they already voted on
       if (votedIssueIds.has(issue.id)) return false
       

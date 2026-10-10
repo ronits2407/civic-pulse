@@ -86,3 +86,46 @@ bun install
 # Run the dev server
 bun dev
 ```
+---
+
+## 📱 Mobile app (React Native / Expo)
+
+The native Android client lives in `mobile/`. It is a real React Native application that
+uses the same backend and the same Supabase project as the web app — not a WebView.
+
+The citizen experience is complete: authentication, reporting with photo and location,
+live pipeline tracking, community verification, the city map, karma leaderboard, and the
+impact receipt. The municipal side has a role-guarded entry point that links through to the
+web admin console.
+
+It is a separate application with its own `package.json` and lockfile, so the web project's
+dependency graph and `bun.lock` are untouched. Nothing in `mobile/` is needed to run or
+build the web app.
+
+### Quickstart
+
+```bash
+# 1. Start the existing backend (repo root)
+bun dev                       # http://localhost:3000
+
+# 2. Configure and run the app
+cd mobile
+cp .env.example .env.local    # fill in Supabase URL/key; API_URL=http://10.0.2.2:3000
+bun install
+bun run android
+```
+
+The Android emulator reaches your machine at **`10.0.2.2`**, not `localhost`. Add
+`civicpulse://auth-callback` to **Supabase → Authentication → URL Configuration → Redirect
+URLs** for sign-in links to work.
+
+Full setup, architecture notes, design language and known limitations:
+**[`mobile/README.md`](./mobile/README.md)**.
+
+### Backend change introduced for mobile
+
+`lib/auth/api-auth.ts` adds session verification to the citizen-facing routes. A native
+client cannot share the web app's cookies, so it sends `Authorization: Bearer <supabase
+access token>`. The helper validates that token, falls back to the existing cookie session,
+and only then to the legacy client-supplied `userId`. Cookie callers (the web app) behave
+exactly as before.

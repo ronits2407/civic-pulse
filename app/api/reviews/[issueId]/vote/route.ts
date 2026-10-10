@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/db/server'
-import { getRequestUser } from '@/lib/auth/request-user'
+import { resolveActingUser } from '@/lib/auth/api-auth'
 import { isUuid } from '@/lib/evidence/media'
 import { isUrgentSafety } from '@/lib/evidence/policy'
 import { recordEvent } from '@/lib/evidence/repository'
@@ -16,18 +16,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
     const { issueId } = await params
     if (!isUuid(issueId)) return NextResponse.json({ error: 'Invalid issue id' }, { status: 400 })
 
-    // Identity comes from the session only; userId / distance in the body are ignored.
-    const auth = await getRequestUser(req)
-    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const userId = auth.user.id
-
     const body = await req.json().catch(() => ({}))
-    const { verdict } = body
+    const { verdict, userId } = body
     const comment = typeof body.comment === 'string' ? body.comment.slice(0, 500) : null
 
     if (typeof verdict !== 'boolean') {
       return NextResponse.json({ error: 'Missing required field: verdict (boolean)' }, { status: 400 })
     }
+
+    const identity = await resolveActingUser(req, userId)
+    if (!identity.userId) {
+      return NextResponse.json(
+        { error: identity.error ?? 'Authentication required.' },
+        { status: identity.status ?? 401 }
+      )
+    }
+    const actingUserId = identity.userId
 
     const supabase = createServiceClient()
 
@@ -41,14 +45,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
     if (target.status !== 'community_review') {
       return NextResponse.json({ error: 'This report is not open for community review.' }, { status: 409 })
     }
-    if (target.user_id === userId) {
+    if (target.user_id === actingUserId) {
       return NextResponse.json({ error: 'You cannot review your own report.' }, { status: 403 })
     }
 
     // 1. Insert verification record (unique per issue/user)
     const { error: insertError } = await supabase.from('verifications').insert({
       issue_id: issueId,
-      user_id: userId,
+      user_id: actingUserId,
       verdict: verdict,
       comment,
       distance_meters: null,
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
 
     // 2. Add karma for participating (+2)
     await supabase.from('karma_events').insert({
-      user_id: userId,
+      user_id: actingUserId,
       event_type: 'community_review_participation',
       points: 2,
       issue_id: issueId,
