@@ -47,6 +47,14 @@ Offline copy: [PPTX](./docs/export/civicpulse-deck.pptx)
 
 ![Cline SDK, everywhere](./docs/slides/09-cline-sdk.png)
 
+### Mobile: Offline SOS
+
+The mobile app can send an SOS or hazard alert with no internet. Alerts are saved on the phone and relayed to nearby phones. They are community reports, not official warnings.
+
+| 1. Home: "Offline alerts" quick access | 2. You: "Offline emergency alerts" | 3. Relay, SOS and Hazard |
+|---|---|---|
+| <img src="./docs/mobile/01-home.jpeg" width="240" alt="Home screen with the Offline alerts quick access"> | <img src="./docs/mobile/02-you.jpeg" width="240" alt="You tab with the Offline emergency alerts entry"> | <img src="./docs/mobile/03-offline-alerts.jpeg" width="240" alt="Offline alerts screen with relay toggle, SOS and Hazard buttons"> |
+
 ---
 
 ## System Architecture

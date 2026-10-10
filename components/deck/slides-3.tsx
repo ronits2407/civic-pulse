@@ -76,6 +76,33 @@ export const slides3: SlideFn[] = [
       </div>
     </Slide>
   ),
+  // Mobile SOS
+  () => (
+    <Slide bg="bg-blush">
+      <div className="flex h-full items-center gap-12">
+        <div className="flex w-[480px] shrink-0 flex-col gap-7">
+          <Kicker>Mobile app · Offline alerts</Kicker>
+          <Title className="!text-[72px]">SOS, one tap from home.</Title>
+          <p className="text-2xl leading-snug text-ink/75">Turn the relay on and send an SOS or hazard alert. It is saved on the phone and passed to nearby phones, with no server needed.</p>
+          <div className="flex flex-wrap gap-3"><Chip tone="ink">Relay on / off</Chip><Chip tone="sun">SOS + Hazard</Chip><Chip>Community, unverified</Chip></div>
+        </div>
+        <div className="flex min-w-0 flex-1 items-start justify-between gap-6">
+          {[
+            ['01 · Home', 'Quick access', '/deck/mobile/01-home.jpeg', 600],
+            ['02 · You', 'Community menu', '/deck/mobile/02-you.jpeg', 602],
+            ['03 · Offline alerts', 'Relay, SOS, Hazard', '/deck/mobile/03-offline-alerts.jpeg', 648],
+          ].map(([label, caption, src, w]) => (
+            <div key={src as string} className="flex flex-col items-center gap-4">
+              <div className="overflow-hidden rounded-[2.5rem] border-[3px] border-ink bg-white shadow-[10px_10px_0_0_#17140f]">
+                <Image src={src as string} alt={`CivicPulse mobile app: ${caption}`} width={w as number} height={1280} unoptimized className="block h-[640px] w-auto" />
+              </div>
+              <p className="font-mono text-base font-bold uppercase tracking-[0.15em] text-ink/70">{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Slide>
+  ),
   // Receipt
   (c) => (
     <Slide bg="bg-sun">
