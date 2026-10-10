@@ -2,7 +2,15 @@
  * Unified AI client for CivicPulse.
  *
  * Set AI_PROVIDER=gemini  (default) → uses Google Generative AI (Gemini Flash / Pro)
- * Set AI_PROVIDER=ollama          → uses Ollama Cloud via OpenAI-compatible API
+ * Set AI_PROVIDER=groq             → uses Groq via its OpenAI-compatible API
+ * Set AI_PROVIDER=ollama           → uses Ollama Cloud via OpenAI-compatible API
+ *
+ * Groq env vars:
+ *   GROQ_API_KEY       – key from https://console.groq.com/keys
+ *   GROQ_BASE_URL      – defaults to https://api.groq.com/openai/v1
+ *   GROQ_FLASH_MODEL   – fast text model (default: qwen/qwen3.8-27b)
+ *   GROQ_PRO_MODEL     – deeper reasoning, Agent 5 (default: openai/gpt-oss-120b)
+ *   GROQ_VISION_MODEL  – image understanding, Agent 1 (default: qwen/qwen3.8-27b)
  *
  * Ollama Cloud env vars:
  *   OLLAMA_API_KEY   – your key from https://ollama.com/settings
@@ -10,7 +18,8 @@
  *   OLLAMA_FLASH_MODEL  – model used where Gemini Flash was used (default: qwen3:30b-a3b)
  *   OLLAMA_PRO_MODEL    – model used where Gemini Pro was used   (default: qwen3:235b-a22b)
  *
- * NOTE: Embeddings always use Google's gemini-embedding-001 model (when provider=gemini)
+ * NOTE: Embeddings use Google's gemini-embedding-001 model (when provider=gemini or groq —
+ * Groq has no embedding models, so GEMINI_API_KEY is still required for embeddings)
  * or Ollama's nomic-embed-text (when provider=ollama). pgvector dimensions are fixed at
  * 768 to match these models. Changing embedding providers would require re-embedding all
  * stored vectors.
@@ -24,11 +33,12 @@ import { Llms } from '@cline/sdk'
 
 // ─── Provider detection ──────────────────────────────────────────────────────
 
-export type AIProvider = 'gemini' | 'ollama' | 'cline'
+export type AIProvider = 'gemini' | 'groq' | 'ollama' | 'cline'
 
 function getProvider(): AIProvider {
   const raw = process.env.AI_PROVIDER?.toLowerCase()
   if (raw === 'ollama') return 'ollama'
+  if (raw === 'groq') return 'groq'
   if (raw === 'cline') return 'cline'
   return 'gemini' // safe default
 }
@@ -148,6 +158,40 @@ function getOllamaProModel(): string {
   return process.env.OLLAMA_PRO_MODEL || 'qwen3:235b-a22b'
 }
 
+// ─── Groq (OpenAI-compatible) setup ──────────────────────────────────────────
+
+let _groqClient: OpenAI | null = null
+function getGroqClient(): OpenAI {
+  if (!_groqClient) {
+    if (!process.env.GROQ_API_KEY) throw new Error('GROQ_API_KEY is not set')
+    _groqClient = new OpenAI({
+      baseURL: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
+      apiKey: process.env.GROQ_API_KEY,
+      maxRetries: 2,
+      fetch: customFetch,
+    })
+  }
+  return _groqClient
+}
+
+export function getGroqFlashModel(): string {
+  return process.env.GROQ_FLASH_MODEL || 'qwen/qwen3.8-27b'
+}
+
+export function getGroqProModel(): string {
+  return process.env.GROQ_PRO_MODEL || 'openai/gpt-oss-120b'
+}
+
+/** Must accept image_url content parts (Agent 1 image analysis). */
+export function getGroqVisionModel(): string {
+  return process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b'
+}
+
+/** Reasoning models may emit <think>…</think> before the answer; never pass that on. */
+function stripReasoning(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
+}
+
 // ─── Rate Limit & Retry Helper ───────────────────────────────────────────────
 
 const AI_CALL_TIMEOUT_MS = Number(process.env.AI_CALL_TIMEOUT_MS) || 45000
@@ -185,7 +229,7 @@ async function callWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T
           waitMs = Math.ceil(parseFloat(match[1]) * 1000) + 1500
         }
         if (waitMs > MAX_RETRY_WAIT_MS) {
-          throw new Error(`Gemini quota exhausted (retry suggested in ${Math.round(waitMs / 1000)}s). Use another API key, enable billing, or set AI_PROVIDER=ollama.`)
+          throw new Error(`AI quota exhausted (retry suggested in ${Math.round(waitMs / 1000)}s). Use another API key, enable billing, or switch AI_PROVIDER (gemini | groq | ollama).`)
         }
         console.warn(`[AI Client] Gemini Free Tier rate limit (429) hit. Pausing ${(waitMs / 1000).toFixed(1)}s before retry (attempt ${attempt}/${maxRetries})...`)
         await new Promise((resolve) => setTimeout(resolve, waitMs))
@@ -208,6 +252,28 @@ export async function generateStructuredJSON<T>(
   usePro = false
 ): Promise<T> {
   const provider = getProvider()
+
+  if (provider === 'groq') {
+    const client = getGroqClient()
+    const model = usePro ? getGroqProModel() : getGroqFlashModel()
+    const response = await callWithRetry(() =>
+      client.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: systemInstruction + '\nAlways respond with valid JSON only. No markdown, no preamble.' },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.1,
+      })
+    )
+    const clean = stripReasoning(response.choices[0]?.message?.content || '').replace(/```json|```/g, '').trim()
+    try {
+      return JSON.parse(clean) as T
+    } catch (e) {
+      console.error('[AI Client] Failed to parse JSON from Groq. Raw text:', clean)
+      throw e
+    }
+  }
 
   if (provider === 'ollama') {
     const client = getOllamaClient()
@@ -282,7 +348,7 @@ export async function generateStructuredJSON<T>(
 export async function analyzeImage(imageUrl: string, prompt: string): Promise<string> {
   const provider = getProvider()
 
-  if (provider === 'ollama') {
+  if (provider === 'ollama' || provider === 'groq') {
     // Fetch the image and pass as base64 via OpenAI vision API
     const imageResponse = await fetch(imageUrl)
     if (!imageResponse.ok) {
@@ -306,27 +372,29 @@ export async function analyzeImage(imageUrl: string, prompt: string): Promise<st
     
     const base64Image = buffer.toString('base64')
 
-    const visionModel = process.env.OLLAMA_VISION_MODEL || 'llava'
-    const client = getOllamaClient()
+    const visionModel = provider === 'groq' ? getGroqVisionModel() : process.env.OLLAMA_VISION_MODEL || 'llava'
+    const client = provider === 'groq' ? getGroqClient() : getOllamaClient()
 
-    const response = await client.chat.completions.create({
-      model: visionModel,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: { url: `data:${mimeType};base64,${base64Image}` },
-            },
-            { type: 'text', text: prompt },
-          ],
-        },
-      ],
-      temperature: 0.1,
-    })
+    const response = await callWithRetry(() =>
+      client.chat.completions.create({
+        model: visionModel,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image_url',
+                image_url: { url: `data:${mimeType};base64,${base64Image}` },
+              },
+              { type: 'text', text: prompt },
+            ],
+          },
+        ],
+        temperature: 0.1,
+      })
+    )
 
-    return response.choices[0]?.message?.content || ''
+    return stripReasoning(response.choices[0]?.message?.content || '')
   }
 
   // Default: Gemini Flash (multimodal via @google/genai)
@@ -456,6 +524,19 @@ export async function generateText(
 ): Promise<string> {
   const provider = getProvider()
 
+  if (provider === 'groq') {
+    const client = getGroqClient()
+    const model = usePro ? getGroqProModel() : getGroqFlashModel()
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = []
+    if (systemInstruction) messages.push({ role: 'system', content: systemInstruction })
+    messages.push({ role: 'user', content: prompt })
+
+    const response = await callWithRetry(() =>
+      client.chat.completions.create({ model, messages, temperature: 0.1 })
+    )
+    return stripReasoning(response.choices[0]?.message?.content || '')
+  }
+
   if (provider === 'ollama') {
     const client = getOllamaClient()
     const model = usePro ? getOllamaProModel() : getOllamaFlashModel()
@@ -508,6 +589,18 @@ export async function generateText(
  */
 export function getChatModel(usePro = false) {
   const provider = getProvider()
+  if (provider === 'groq') {
+    if (!process.env.GROQ_API_KEY) throw new Error('GROQ_API_KEY is not set')
+    return new ChatOpenAI({
+      modelName: usePro ? getGroqProModel() : getGroqFlashModel(),
+      temperature: 0.1,
+      apiKey: process.env.GROQ_API_KEY,
+      maxRetries: 2,
+      configuration: {
+        baseURL: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
+      },
+    })
+  }
   if (provider === 'ollama') {
     const model = usePro ? getOllamaProModel() : getOllamaFlashModel()
     return new ChatOpenAI({
