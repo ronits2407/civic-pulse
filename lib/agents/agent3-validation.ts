@@ -1,4 +1,4 @@
-import { getChatModel, generateStructuredJSON } from '@/lib/ai/client'
+import { getChatModel, generateStructuredJSON, isMockAiEnabled, getMockAiDelayMs, sleep } from '@/lib/ai/client'
 import { AgentState, ValidationResult } from '@/lib/db/types'
 import { createServiceClient } from '@/lib/db/server'
 import { createReactAgent } from '@langchain/langgraph/prebuilt'
@@ -229,6 +229,48 @@ export function buildIntakeSignals(input: {
 
 export async function runValidationAgent(state: AgentState): Promise<AgentState> {
   console.log(`[Agent 3: Validator] Starting evidence gathering for issue: ${state.issueId || state.reportId || 'unknown'}`)
+
+  if (isMockAiEnabled()) {
+    const delay = getMockAiDelayMs()
+    console.log(`[Agent 3: Validator] [MOCK MODE] Waiting ${delay}ms before emitting hardcoded response...`)
+    await sleep(delay)
+
+    const legacyScore = 8
+    const needsReview = false
+    const reasoning = 'Cross-referenced against regional telemetry and incident density. Location coordinates verified with acceptable satellite confidence; no conflicting weather alerts found.'
+
+    const supabase = createServiceClient()
+
+    await recordEvent({
+      issueId: state.reportId,
+      eventType: 'intake_assessed',
+      actorRole: 'system',
+      summary: 'Intake confidence 85/100, coverage 80%. Automated verification passed.',
+      metadata: { risk_level: 'low', risk_flags: [] },
+    }).catch((e) => console.warn('[Agent 3: Validator] [MOCK MODE] Event recording skipped:', e))
+
+    await supabase.from('issues').update({
+      credibility_score: legacyScore,
+      needs_community_verification: needsReview,
+      reasoning,
+      weather_checked: true,
+      web_search_checked: true,
+      pipeline_stage: 'agent4_resolution',
+    }).eq('id', state.reportId)
+
+    console.log(`[Agent 3: Validator] [MOCK MODE] Completed successfully. Stage: agent4_resolution`)
+
+    return {
+      ...state,
+      validation: {
+        credibility_score: legacyScore,
+        reasoning,
+        needs_community_verification: needsReview,
+        weather_corroborated: true,
+      },
+    }
+  }
+
   try {
     const llm = getChatModel(false)
     const agent = createReactAgent({ llm, tools: [getWeatherTool, webSearchTool] })

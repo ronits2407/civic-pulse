@@ -1,4 +1,4 @@
-import { generateStructuredJSON } from '@/lib/ai/client'
+import { generateStructuredJSON, isMockAiEnabled, getMockAiDelayMs, sleep } from '@/lib/ai/client'
 import { AgentState } from '@/lib/db/types'
 import { createServiceClient } from '@/lib/db/server'
 
@@ -25,6 +25,36 @@ export async function runTranslationAgent(state: AgentState): Promise<AgentState
   console.log(`[Agent 0: Translation] Processing issue ID: ${state.reportId || 'unknown'}`);
   console.log(`[Agent 0: Translation] Raw Input Received:\n"${state.rawText}"`);
   console.log(`======================================================\n`);
+
+  if (isMockAiEnabled()) {
+    const delay = getMockAiDelayMs()
+    console.log(`[Agent 0: Translation] [MOCK MODE] Waiting ${delay}ms before emitting hardcoded response...`)
+    await sleep(delay)
+
+    const detectedLanguage = 'English'
+    const translationTrace = 'Detected English. Language verified and normalized for civic intelligence routing.'
+    const translatedText = state.rawText
+
+    const supabase = createServiceClient()
+    const { error: updateError } = await supabase.from('issues').update({
+      original_language: detectedLanguage,
+      translation_trace: translationTrace,
+      pipeline_stage: 'agent1_classifier'
+    }).eq('id', state.reportId)
+
+    if (updateError) {
+      console.error(`[Agent 0: Translation] [MOCK MODE] Database update failed:`, updateError)
+    } else {
+      console.log(`[Agent 0: Translation] [MOCK MODE] Updated issue ${state.reportId} -> agent1_classifier`)
+    }
+
+    return {
+      ...state,
+      originalLanguage: detectedLanguage,
+      englishTranslation: translatedText,
+      translationTrace
+    }
+  }
 
   try {
     const prompt = `Analyze this citizen report:\n"${state.rawText}"`

@@ -30,6 +30,9 @@ import OpenAI from 'openai'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatOpenAI } from '@langchain/openai'
 import { Llms } from '@cline/sdk'
+import { isMockAiEnabled, getMockAiDelayMs, sleep, getMockEmbedding } from '@/lib/ai/mock'
+
+export { isMockAiEnabled, getMockAiDelayMs, sleep, getMockEmbedding }
 
 // ─── Provider detection ──────────────────────────────────────────────────────
 
@@ -251,6 +254,18 @@ export async function generateStructuredJSON<T>(
   systemInstruction: string,
   usePro = false
 ): Promise<T> {
+  if (isMockAiEnabled()) {
+    if (systemInstruction.includes('Predictive') || prompt.includes('cluster')) {
+      return [
+        {
+          predicted_category: 'infrastructure',
+          confidence: 0.88,
+          basis_summary: 'Historical incident density indicates recurring wear on local road surface.',
+        },
+      ] as unknown as T
+    }
+  }
+
   const provider = getProvider()
 
   if (provider === 'groq') {
@@ -346,6 +361,10 @@ export async function generateStructuredJSON<T>(
  * falls back to Gemini Flash if the vision model env var is not set for Ollama.
  */
 export async function analyzeImage(imageUrl: string, prompt: string): Promise<string> {
+  if (isMockAiEnabled()) {
+    return 'Visual inspection confirms observable civic issue matching citizen report.'
+  }
+
   const provider = getProvider()
 
   if (provider === 'ollama' || provider === 'groq') {
@@ -487,6 +506,10 @@ export async function analyzeImage(imageUrl: string, prompt: string): Promise<st
  * Both output 768 dimensions matching the pgvector column.
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
+  if (isMockAiEnabled()) {
+    return getMockEmbedding()
+  }
+
   const provider = getProvider()
 
   if (provider === 'ollama') {
@@ -522,6 +545,10 @@ export async function generateText(
   systemInstruction?: string,
   usePro = false
 ): Promise<string> {
+  if (isMockAiEnabled()) {
+    return 'Civic issue verified and summarized per municipal guidelines.'
+  }
+
   const provider = getProvider()
 
   if (provider === 'groq') {

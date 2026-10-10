@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { isClineSdkActive, getGeminiFlashModel, getGroqFlashModel, getGroqVisionModel } from '@/lib/ai/client'
+import { isClineSdkActive, getGeminiFlashModel, getGroqFlashModel, getGroqVisionModel, isMockAiEnabled, getMockAiDelayMs } from '@/lib/ai/client'
 
 export async function GET() {
   const provider = (process.env.AI_PROVIDER || 'gemini').toLowerCase()
@@ -12,5 +12,6 @@ export async function GET() {
     mapsKey: process.env.GOOGLE_MAPS_API_KEY ? 'set' : 'missing',
     mapboxToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN ? 'set' : 'missing',
     clineSdk: isClineSdkActive() ? `active (@cline/sdk provider with model: ${getGeminiFlashModel()})` : 'disabled',
+    mockAi: isMockAiEnabled() ? `enabled (delay: ${getMockAiDelayMs()}ms)` : 'disabled',
   })
 }

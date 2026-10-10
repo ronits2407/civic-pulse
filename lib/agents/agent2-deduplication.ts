@@ -1,4 +1,4 @@
-import { generateEmbedding, generateStructuredJSON, generateText } from '@/lib/ai/client'
+import { generateEmbedding, generateStructuredJSON, generateText, isMockAiEnabled, getMockAiDelayMs, sleep } from '@/lib/ai/client'
 import { AgentState, DeduplicationResult } from '@/lib/db/types'
 import { createServiceClient } from '@/lib/db/server'
 
@@ -8,6 +8,29 @@ const PROXIMITY_METERS = 200
 export async function runDeduplicationAgent(state: AgentState): Promise<AgentState> {
   const startTime = Date.now();
   console.log('[Agent 2: Deduplicator] Starting deduplication for issue:', state.issueId || state.reportId || 'unknown');
+
+  if (isMockAiEnabled()) {
+    const delay = getMockAiDelayMs()
+    console.log(`[Agent 2: Deduplicator] [MOCK MODE] Waiting ${delay}ms before emitting hardcoded response...`);
+    await sleep(delay);
+
+    const supabase = createServiceClient();
+    await supabase.from('issues').update({
+      pipeline_stage: 'agent3_validation',
+    }).eq('id', state.reportId);
+
+    console.log(`[Agent 2: Deduplicator] [MOCK MODE] Completed successfully. Stage: agent3_validation`);
+
+    return {
+      ...state,
+      deduplication: {
+        is_duplicate: false,
+        cluster_id: null,
+        existing_issue_id: null,
+        similarity_score: 0.15,
+      },
+    };
+  }
   try {
     const supabase = createServiceClient()
 

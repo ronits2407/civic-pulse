@@ -1,4 +1,4 @@
-import { generateStructuredJSON, generateEmbedding } from '@/lib/ai/client'
+import { generateStructuredJSON, generateEmbedding, isMockAiEnabled, getMockAiDelayMs, sleep } from '@/lib/ai/client'
 import { AgentState, ResolutionResult } from '@/lib/db/types'
 import { createServiceClient } from '@/lib/db/server'
 
@@ -40,6 +40,47 @@ Return JSON with exactly these fields:
 
 export async function runResolutionAgent(state: AgentState): Promise<AgentState> {
   console.log(`[Agent 4: Resolution Planner] Starting RAG-based resolution planning for issue: ${state.issueId || state.reportId || 'unknown'}`);
+
+  if (isMockAiEnabled()) {
+    const delay = getMockAiDelayMs()
+    console.log(`[Agent 4: Resolution Planner] [MOCK MODE] Waiting ${delay}ms before emitting hardcoded response...`);
+    await sleep(delay);
+
+    const category = state.classification?.category || 'infrastructure';
+    const isEmergency = Boolean(state.classification?.is_emergency);
+    const slaHours = isEmergency ? 12 : category === 'utilities' ? 24 : category === 'sanitation' ? 24 : 48;
+    const slaDeadline = new Date(Date.now() + slaHours * 3600 * 1000).toISOString();
+
+    const civicBrief = `Field inspection scheduled with municipal ${category} engineering division. Maintenance crew assigned to inspect site at ${state.address || 'the reported coordinates'} to secure area safety and complete physical remediation. Task prioritized under a ${slaHours}-hour SLA window following standard civic maintenance protocols.`;
+
+    const supabase = createServiceClient();
+    const finalDepartmentId = state.classification?.department_id || null;
+
+    const { error: updateError } = await supabase.from('issues').update({
+      department_id: finalDepartmentId,
+      civic_brief: civicBrief,
+      local_civic_brief: null,
+      sla_deadline: slaDeadline,
+      pipeline_stage: 'completed',
+    }).eq('id', state.reportId);
+
+    if (updateError) {
+      console.error(`[Agent 4: Resolution Planner] [MOCK MODE] Database update failed:`, updateError);
+    } else {
+      console.log(`[Agent 4: Resolution Planner] [MOCK MODE] Completed successfully. Stage: completed`);
+    }
+
+    return {
+      ...state,
+      resolution: {
+        civic_brief: civicBrief,
+        local_civic_brief: undefined,
+        sla_hours: slaHours,
+        sla_deadline: slaDeadline,
+      },
+    };
+  }
+
   try {
     const supabase = createServiceClient()
 

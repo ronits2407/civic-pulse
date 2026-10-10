@@ -1,4 +1,4 @@
-import { generateStructuredJSON, analyzeImage } from '@/lib/ai/client'
+import { generateStructuredJSON, analyzeImage, isMockAiEnabled, getMockAiDelayMs, sleep } from '@/lib/ai/client'
 import { AgentState, ClassificationResult } from '@/lib/db/types'
 import { createServiceClient } from '@/lib/db/server'
 
@@ -36,7 +36,119 @@ Describe: what the problem is, visible severity, approximate location type (road
 any safety hazards visible. Be concise, under 100 words.`
 
 export async function runClassifierAgent(state: AgentState): Promise<AgentState> {
-  console.log('[Agent 1: Classifier] Starting classification for issue:', state.issueId || 'new issue');
+  console.log('[Agent 1: Classifier] Starting classification for issue:', state.issueId || state.reportId || 'new issue');
+
+  if (isMockAiEnabled()) {
+    const delay = getMockAiDelayMs()
+    console.log(`[Agent 1: Classifier] [MOCK MODE] Waiting ${delay}ms before emitting hardcoded response...`);
+    await sleep(delay);
+
+    const lower = (state.englishTranslation || state.rawText || '').toLowerCase();
+
+    let category: 'infrastructure' | 'sanitation' | 'safety' | 'utilities' | 'environment' | 'miscellaneous' = 'infrastructure';
+    let subcategory = 'pothole';
+    let severity = 6;
+
+    if (/pothole|crater|asphalt|tarmac/.test(lower)) {
+      category = 'infrastructure';
+      subcategory = 'pothole';
+      severity = 6;
+    } else if (/streetlight|lamp|dark|light/.test(lower)) {
+      category = 'infrastructure';
+      subcategory = 'streetlight';
+      severity = 5;
+    } else if (/road|bridge|sidewalk|footpath|divider/.test(lower)) {
+      category = 'infrastructure';
+      subcategory = 'road_damage';
+      severity = 6;
+    } else if (/garbage|trash|waste|rubbish|dump|litter/.test(lower)) {
+      category = 'sanitation';
+      subcategory = 'garbage';
+      severity = 5;
+    } else if (/drain|drainage|sewer|manhole|gutter/.test(lower)) {
+      category = 'sanitation';
+      subcategory = 'drainage';
+      severity = 6;
+    } else if (/water|leak|pipeline|tap|supply/.test(lower)) {
+      category = 'utilities';
+      subcategory = 'water_leakage';
+      severity = 7;
+    } else if (/power|electric|wire|transformer|blackout/.test(lower)) {
+      category = 'utilities';
+      subcategory = 'power_outage';
+      severity = 7;
+    } else if (/tree|branch|fallen/.test(lower)) {
+      category = 'safety';
+      subcategory = 'fallen_tree';
+      severity = 7;
+    } else if (/dog|animal|stray|bite/.test(lower)) {
+      category = 'safety';
+      subcategory = 'stray_animals';
+      severity = 6;
+    } else if (/traffic|signal|jam|congestion|hazard/.test(lower)) {
+      category = 'safety';
+      subcategory = 'traffic_hazard';
+      severity = 6;
+    } else if (/smoke|pollution|chemical|noise|dust/.test(lower)) {
+      category = 'environment';
+      subcategory = 'pollution';
+      severity = 5;
+    }
+
+    const isEmergency = severity >= 8 || /emergency|urgent|danger|fatal|collapsed|fire/.test(lower);
+    if (isEmergency) severity = Math.max(severity, 8);
+
+    const words = (state.rawText || '').split(/\s+/).filter(Boolean).slice(0, 6).join(' ');
+    const cleanTitle = words ? words.charAt(0).toUpperCase() + words.slice(1) : `${category.charAt(0).toUpperCase() + category.slice(1)} Issue`;
+    const suggestedTitle = cleanTitle.length > 50 ? cleanTitle.slice(0, 47) + '...' : cleanTitle;
+
+    const imageAnalysis = state.imageUrl
+      ? 'Visual evidence confirms observable physical degradation consistent with citizen description. Municipal attention recommended.'
+      : '';
+
+    const classification: ClassificationResult = {
+      category,
+      subcategory,
+      severity,
+      is_emergency: isEmergency,
+      suggested_title: suggestedTitle,
+      department_id: null,
+    };
+
+    const supabase = createServiceClient();
+    const { data: departments } = await supabase
+      .from('departments')
+      .select('id, name, category_scope');
+
+    if (departments) {
+      const matchingDept = departments.find((d: any) =>
+        d.category_scope?.includes(classification.category)
+      );
+      if (matchingDept) {
+        classification.department_id = matchingDept.id;
+      }
+    }
+
+    await supabase.from('issues').update({
+      title: classification.suggested_title,
+      category: classification.category,
+      subcategory: classification.subcategory,
+      severity: classification.severity,
+      is_emergency: classification.is_emergency,
+      department_id: classification.department_id || null,
+      address: state.address || null,
+      image_analysis: imageAnalysis || null,
+      pipeline_stage: 'agent2_deduplication',
+    }).eq('id', state.reportId);
+
+    console.log(`[Agent 1: Classifier] [MOCK MODE] Completed successfully. Stage: agent2_deduplication`);
+
+    return {
+      ...state,
+      classification,
+      imageAnalysis,
+    };
+  }
   try {
     let imageAnalysis = ''
 
