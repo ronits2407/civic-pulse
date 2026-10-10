@@ -13,6 +13,10 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
+  if (profile?.role === 'admin') {
+    redirect('/admin/dashboard')
+  }
+
   const { data: issues } = await supabase
     .from('issues')
     .select('*')

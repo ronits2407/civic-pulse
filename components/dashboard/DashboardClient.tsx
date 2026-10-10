@@ -1140,7 +1140,11 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                                     {selectedIssue.needs_community_verification === false ? (
                                       <span className="text-emerald-400 ml-1 font-semibold">Approved (by AI)</span>
                                     ) : selectedIssue.needs_community_verification === true ? (
-                                      <span className="text-amber-400 ml-1 font-semibold">Community Review Required</span>
+                                      state3 === 'done' ? (
+                                        <span className="text-emerald-400 ml-1 font-semibold">Community Review Completed</span>
+                                      ) : (
+                                        <span className="text-amber-400 ml-1 font-semibold">Community Review Required</span>
+                                      )
                                     ) : (
                                       <span className="text-muted-foreground ml-1">Pending</span>
                                     )}
