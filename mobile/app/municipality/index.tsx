@@ -95,7 +95,7 @@ export default function MunicipalityHomeScreen() {
       ) : (
         <Card style={styles.metricsCard}>
           <Text variant="micro" weight="medium" tone="faint">
-            LIVE QUEUE
+            Live queue
           </Text>
           <View style={styles.metricsGrid}>
             {metrics.map((metric, index) => (

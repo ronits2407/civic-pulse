@@ -15,7 +15,7 @@ import { PressableScale } from '@/components/ui/PressableScale'
 import { Icon } from '@/theme/icons'
 import { Text } from '@/theme/Typography'
 import type { LatLng } from '@/lib/location/postgis'
-import { STATUS_META, TONE_COLOR, accent, ink, line, surface, type Tone } from '@/theme/tokens'
+import { STATUS_META, TONE_COLOR, accent, ink, surface, type Tone } from '@/theme/tokens'
 
 /**
  * Incident map, drawn in React Native.
@@ -70,6 +70,8 @@ export interface IncidentMapProps {
   /** Blue "you are here" dot. Pass the device position, or null. */
   userLocation?: LatLng | null
   interactive?: boolean
+  /** Push the zoom / theme controls down, e.g. below a floating header. */
+  controlsTop?: number
   style?: StyleProp<ViewStyle>
 }
 
@@ -131,6 +133,7 @@ export function IncidentMap({
   onRegionChangeComplete,
   userLocation,
   interactive = true,
+  controlsTop = 12,
   style,
 }: IncidentMapProps) {
   const [size, setSize] = useState({ w: 0, h: 0 })
@@ -423,7 +426,7 @@ export function IncidentMap({
       ) : null}
 
       {interactive ? (
-        <View style={styles.zoomControls} pointerEvents="box-none">
+        <View style={[styles.zoomControls, { top: controlsTop }]} pointerEvents="box-none">
           <PressableScale
             onPress={() => zoomBy(1)}
             haptic="tap"
@@ -451,7 +454,7 @@ export function IncidentMap({
             accessibilityLabel={dark ? 'Switch to standard map' : 'Switch to dark map'}
           >
             <View style={[styles.zoomButton, dark && styles.zoomButtonOn]}>
-              <Icon name="theme-light-dark" size={18} color={dark ? accent.brand : ink.base} />
+              <Icon name="theme-light-dark" size={18} color={dark ? ink.inverse : ink.base} />
             </View>
           </PressableScale>
         </View>
@@ -467,20 +470,20 @@ export function IncidentMap({
 }
 
 const styles = StyleSheet.create({
-  container: { overflow: 'hidden', backgroundColor: '#10161d' },
+  container: { overflow: 'hidden', backgroundColor: '#E8E6E0' },
   marker: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.92)',
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    shadowColor: '#0E1526',
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
-  markerCore: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(13,17,23,0.85)' },
+  markerCore: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.9)' },
   userRing: {
     position: 'absolute',
     width: 32,
@@ -488,7 +491,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(9,105,218,0.25)',
+    backgroundColor: 'rgba(47,85,212,0.22)',
   },
   userDot: {
     width: 14,
@@ -501,28 +504,29 @@ const styles = StyleSheet.create({
   isolated: { isolation: 'isolate' },
   luminosity: { mixBlendMode: 'luminosity' },
   invert: { backgroundColor: '#ffffff', mixBlendMode: 'difference' },
-  zoomButtonOn: { borderColor: accent.brand },
-  zoomControls: { position: 'absolute', top: 10, right: 10, gap: 8 },
+  zoomButtonOn: { backgroundColor: accent.brand },
+  zoomControls: { position: 'absolute', top: 12, right: 12, gap: 8 },
   zoomButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(22,27,34,0.94)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#0E1526',
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
   },
   failed: {
     position: 'absolute',
     left: 24,
     right: 24,
     top: '42%',
-    padding: 12,
-    borderRadius: 10,
+    padding: 14,
+    borderRadius: 14,
     backgroundColor: surface.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
   },
   attribution: {
     position: 'absolute',
@@ -530,7 +534,7 @@ const styles = StyleSheet.create({
     bottom: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
-    backgroundColor: 'rgba(13,17,23,0.78)',
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.86)',
   },
 })

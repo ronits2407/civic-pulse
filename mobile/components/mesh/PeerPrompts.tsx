@@ -21,7 +21,7 @@ export function PeerPrompts({ session }: { session: RelaySession }) {
   return (
     <View style={styles.list}>
       <Text variant="label" weight="semibold" tone="muted">
-        NEARBY PHONES ASKING TO CONNECT
+        Nearby phones asking to connect
       </Text>
       {snapshot.awaitingConsent.map((peer) => (
         <PeerCard key={peer.endpointId} peer={peer} onAllow={() => void allowPeer(peer.endpointId)} onBlock={() => void blockPeer(peer.endpointId)} />

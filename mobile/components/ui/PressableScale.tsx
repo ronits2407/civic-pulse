@@ -1,20 +1,15 @@
 import React, { useCallback } from 'react'
 import { Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native'
-import Animated, {
-  ReduceMotion,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
+import Animated, { ReduceMotion, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 
 import { haptics } from '@/lib/haptics'
+import { motion } from '@/theme/tokens'
 
 /**
  * A pressable that physically acknowledges the touch.
  *
- * Scaling is driven on the UI thread and honours the system "remove animations"
- * setting via Reanimated's `ReduceMotion.System`, so accessibility preferences are
- * respected without a second code path.
+ * A spring (not a fixed tween) so a quick tap and a long press both feel natural. Driven
+ * on the UI thread, and honours the system "remove animations" setting.
  */
 
 export interface PressableScaleProps extends Omit<PressableProps, 'style'> {
@@ -25,9 +20,11 @@ export interface PressableScaleProps extends Omit<PressableProps, 'style'> {
   children: React.ReactNode
 }
 
+const SPRING = { ...motion.spring, reduceMotion: ReduceMotion.System }
+
 export function PressableScale({
   style,
-  scaleTo = 0.975,
+  scaleTo = 0.965,
   haptic = 'tap',
   children,
   disabled,
@@ -35,16 +32,14 @@ export function PressableScale({
   ...rest
 }: PressableScaleProps) {
   const scale = useSharedValue(1)
-
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
 
   const handlePressIn = useCallback(() => {
-    if (disabled) return
-    scale.value = withTiming(scaleTo, { duration: 90, reduceMotion: ReduceMotion.System })
+    if (!disabled) scale.set(withSpring(scaleTo, SPRING))
   }, [disabled, scale, scaleTo])
 
   const handlePressOut = useCallback(() => {
-    scale.value = withTiming(1, { duration: 140, reduceMotion: ReduceMotion.System })
+    scale.set(withSpring(1, SPRING))
   }, [scale])
 
   const handlePress = useCallback<NonNullable<PressableProps['onPress']>>(
@@ -57,15 +52,7 @@ export function PressableScale({
   )
 
   return (
-    <Pressable
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      onPress={handlePress}
-      disabled={disabled}
-      // Android ripples would double up with the scale feedback.
-      android_ripple={undefined}
-      {...rest}
-    >
+    <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={handlePress} disabled={disabled} {...rest}>
       <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
     </Pressable>
   )

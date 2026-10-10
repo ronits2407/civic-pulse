@@ -9,92 +9,61 @@ import {
   TONE_COLOR,
   TONE_TINT,
   UNKNOWN_STATUS,
-  line,
+  ink,
   radius,
   space,
   type Tone,
 } from '@/theme/tokens'
 
 /** Small, information-carrying pill. Colour always means the same thing. */
-
 export interface ChipProps {
   label: string
   color?: string
   tint?: string
   icon?: React.ReactNode
   style?: StyleProp<ViewStyle>
-  /** Uppercase micro caps for terse markers like the pipeline stage badges. */
   dense?: boolean
 }
 
 export function Chip({ label, color, tint, icon, style, dense = false }: ChipProps) {
-  const resolvedColor = color ?? line.strong
-  const resolvedTint = tint ?? 'rgba(148,163,184,0.12)'
-
   return (
-    <View
-      style={[
-        styles.chip,
-        dense && styles.chipDense,
-        { backgroundColor: resolvedTint, borderColor: resolvedColor + '44' },
-        style,
-      ]}
-    >
+    <View style={[styles.chip, dense && styles.dense, { backgroundColor: tint ?? '#ECEDF1' }, style]}>
       {icon}
-      <Text
-        variant={dense ? 'micro' : 'caption'}
-        weight="semibold"
-        style={{ color: resolvedColor }}
-        numberOfLines={1}
-      >
+      <Text variant={dense ? 'micro' : 'caption'} weight="semibold" style={{ color: color ?? ink.muted }} numberOfLines={1}>
         {label}
       </Text>
     </View>
   )
 }
 
-/** Status pill driven by the raw backend status value. */
+/** Status pill, with a dot so it never depends on colour alone. */
 export function StatusPill({ status, dense }: { status: string | null | undefined; dense?: boolean }) {
   const meta = (status && STATUS_META[status]) || UNKNOWN_STATUS
   const tone: Tone = meta.tone
   return (
-    <Chip label={meta.label} color={TONE_COLOR[tone]} tint={TONE_TINT[tone]} dense={dense} />
+    <Chip
+      label={meta.label}
+      color={TONE_COLOR[tone]}
+      tint={TONE_TINT[tone]}
+      dense={dense}
+      icon={<View style={[styles.dot, { backgroundColor: TONE_COLOR[tone] }]} />}
+    />
   )
 }
 
-/** Category pill driven by the taxonomy the classifier writes. */
-export function CategoryChip({
-  category,
-  dense,
-}: {
-  category: string | null | undefined
-  dense?: boolean
-}) {
+export function CategoryChip({ category, dense }: { category: string | null | undefined; dense?: boolean }) {
   const meta = (category && CATEGORY_META[category]) || FALLBACK_CATEGORY
   return <Chip label={meta.label} color={meta.color} tint={meta.tint} dense={dense} />
 }
 
-/**
- * Neutral label/value pair used in detail grids.
- * Values render in the mono face so figures line up column-to-column.
- */
-export function MetaItem({
-  label,
-  value,
-  tone = 'base',
-  numeric = false,
-}: {
-  label: string
-  value: string
-  tone?: 'base' | 'muted' | 'faint' | string
-  numeric?: boolean
-}) {
+/** Label above value. Figures render in the display face so they line up. */
+export function MetaItem({ label, value, tone = 'base', numeric = false }: { label: string; value: string; tone?: string; numeric?: boolean }) {
   return (
     <View style={styles.metaItem}>
-      <Text variant="micro" weight="medium" tone="faint">
+      <Text variant="caption" tone="faint">
         {label}
       </Text>
-      <Text variant={numeric ? 'data' : 'bodyTight'} weight="medium" tone={tone} numberOfLines={2}>
+      <Text variant={numeric ? 'data' : 'bodyTight'} weight="semibold" tone={tone} numberOfLines={2}>
         {value}
       </Text>
     </View>
@@ -105,13 +74,13 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.xs,
-    paddingHorizontal: space.sm,
-    paddingVertical: 4,
+    gap: 6,
+    paddingHorizontal: space.md,
+    paddingVertical: 5,
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
     alignSelf: 'flex-start',
   },
-  chipDense: { paddingHorizontal: 6, paddingVertical: 2 },
+  dense: { paddingHorizontal: 10, paddingVertical: 3 },
+  dot: { width: 6, height: 6, borderRadius: 3 },
   metaItem: { gap: 2, minWidth: 96 },
 })

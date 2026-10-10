@@ -6,7 +6,7 @@ import { Card, Divider } from '@/components/ui/Card'
 import { PressableScale } from '@/components/ui/PressableScale'
 import { Text } from '@/theme/Typography'
 import { Icon, type IconName } from '@/theme/icons'
-import { accent, line, radius, space, surface } from '@/theme/tokens'
+import { accent, radius, space, surface } from '@/theme/tokens'
 
 /**
  * Building blocks for the issue detail screen.
@@ -32,8 +32,12 @@ export function DetailSection({
   return (
     <Card style={styles.section}>
       <View style={styles.sectionHeader}>
-        {icon ? <Icon name={icon} size={15} color={tone ?? accent.slate} /> : null}
-        <Text variant="heading" weight="semibold" style={{ color: tone ?? undefined }}>
+        {icon ? (
+          <View style={styles.sectionIcon}>
+            <Icon name={icon} size={17} color={tone ?? accent.brand} />
+          </View>
+        ) : null}
+        <Text variant="heading">
           {title}
         </Text>
       </View>
@@ -64,7 +68,7 @@ export function InfoRow({
   return (
     <>
       <View style={styles.infoRow}>
-        <Text variant="caption" tone="muted" style={styles.infoLabel}>
+        <Text variant="caption" tone="faint" style={styles.infoLabel}>
           {label}
         </Text>
         <Text
@@ -150,7 +154,8 @@ export function FlagRow({ children }: { children: React.ReactNode }) {
 
 const styles = StyleSheet.create({
   section: { gap: space.sm },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  sectionIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: surface.mist, alignItems: 'center', justifyContent: 'center' },
   hint: { marginTop: -2 },
   sectionBody: { marginTop: space.sm, gap: 0 },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: space.lg, paddingVertical: space.md },
@@ -161,11 +166,9 @@ const styles = StyleSheet.create({
   expandableText: { lineHeight: 22 },
   expandToggle: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   evidence: {
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-    backgroundColor: surface.sunken,
+    backgroundColor: surface.card,
   },
   evidenceImage: { width: '100%', aspectRatio: 4 / 3 },
   evidenceCaption: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: space.md },

@@ -32,12 +32,11 @@ export function AlertCard({ item, now }: { item: FeedItem; now: number }) {
   const from = item.direction === 'local' ? 'Created on this phone' : `Received from a nearby phone · ${alert.hopCount} hop${alert.hopCount === 1 ? '' : 's'}`
 
   return (
-    <Card
-      accentColor={TONE_COLOR[severityTone]}
-      style={[styles.card, item.expired && styles.expired]}
-    >
+    <Card style={[styles.card, item.expired && styles.expired]}>
       <View style={styles.head}>
-        <Icon name={TYPE_ICON[alert.type]} size={20} color={TONE_COLOR[severityTone]} />
+        <View style={[styles.typeWell, { backgroundColor: TONE_TINT[severityTone] }]}>
+          <Icon name={TYPE_ICON[alert.type]} size={20} color={TONE_COLOR[severityTone]} />
+        </View>
         <View style={styles.flex}>
           <Text variant="bodyTight" weight="semibold">
             {TYPE_LABEL[alert.type]}
@@ -49,7 +48,7 @@ export function AlertCard({ item, now }: { item: FeedItem; now: number }) {
         </View>
         <Chip
           dense
-          label={SEVERITY_LABEL[alert.severity].toUpperCase()}
+          label={SEVERITY_LABEL[alert.severity]}
           color={TONE_COLOR[severityTone]}
           tint={TONE_TINT[severityTone]}
         />
@@ -71,7 +70,7 @@ export function AlertCard({ item, now }: { item: FeedItem; now: number }) {
       </Text>
 
       <View style={styles.footer}>
-        <Chip dense label="UNVERIFIED COMMUNITY REPORT" color={accent.amberSoft} tint={TONE_TINT.amber} />
+        <Chip dense label="Unverified community report" color={accent.amberSoft} tint={TONE_TINT.amber} />
         <Chip
           dense
           label={STATE_SHORT[item.state]}
@@ -125,6 +124,7 @@ const styles = StyleSheet.create({
   card: { gap: space.sm },
   expired: { opacity: 0.6 },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  typeWell: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   meta: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   footer: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
 })

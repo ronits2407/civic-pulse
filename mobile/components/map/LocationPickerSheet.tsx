@@ -13,7 +13,7 @@ import { formatCoordinates } from '@/lib/format'
 import { getCurrentPoint, requestLocationPermission, resolveAddress } from '@/lib/location/geo'
 import type { LatLng } from '@/lib/location/postgis'
 import { haptics } from '@/lib/haptics'
-import { accent, ink, line, radius, space, surface } from '@/theme/tokens'
+import { accent, ink, radius, space, surface } from '@/theme/tokens'
 
 /**
  * Location picker.
@@ -224,7 +224,7 @@ export function LocationPickerSheet({ visible, initial, onClose, onConfirm }: Pr
             loading={resolving}
             size="lg"
             fullWidth
-            icon={<Icon name="map-marker-check-outline" size={18} color="#ffffff" />}
+            icon={<Icon name="map-marker-check-outline" size={18} color={ink.inverse} />}
           />
         </View>
       </View>
@@ -233,14 +233,12 @@ export function LocationPickerSheet({ visible, initial, onClose, onConfirm }: Pr
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(20,28,46,0.5)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: surface.canvas,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-    padding: space.lg,
+    padding: space.xl,
     gap: space.lg,
   },
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: space.md },
@@ -253,16 +251,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: surface.raised,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
   },
   mapWrap: {
     height: 236,
     borderRadius: radius.lg,
     overflow: 'hidden',
     backgroundColor: surface.sunken,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
   },
   mapFallback: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.sm, padding: space.lg },
   fallbackText: { maxWidth: 280 },
@@ -276,9 +270,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical: 6,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(13,17,23,0.9)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
+    backgroundColor: 'rgba(255,255,255,0.95)',
   },
   controls: { flexDirection: 'row', gap: space.lg, alignItems: 'center' },
   nudgePad: { alignItems: 'center', gap: space.xs },
@@ -286,12 +278,10 @@ const styles = StyleSheet.create({
   nudgeButton: {
     width: 44,
     height: 44,
-    borderRadius: radius.md,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: surface.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
   },
   nudgeCentre: {
     width: 44,
@@ -299,7 +289,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.md,
-    backgroundColor: 'rgba(45,164,78,0.1)',
+    backgroundColor: surface.mist,
   },
   sideControls: { flex: 1, gap: space.sm },
   notice: { marginTop: 0 },

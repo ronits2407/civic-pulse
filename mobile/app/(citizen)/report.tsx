@@ -1,567 +1,186 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { Modal, ScrollView, StyleSheet, TextInput, View } from 'react-native'
+import React, { useState } from 'react'
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import * as ImagePicker from 'expo-image-picker'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { LocationPickerSheet } from '@/components/map/LocationPickerSheet'
-import { PipelineRail } from '@/components/pipeline/PipelineRail'
+import { ActionTile, StepCard } from '@/components/report/StepCard'
 import { MediaThumb } from '@/components/report/MediaThumb'
+import { ReviewSheet } from '@/components/report/ReviewSheet'
+import { SubmittedView } from '@/components/report/SubmittedView'
 import { Button } from '@/components/ui/Button'
-import { Card, Divider } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Feedback'
 import { Screen } from '@/components/ui/Screen'
+import { TopBar } from '@/components/ui/TopBar'
 import { PressableScale } from '@/components/ui/PressableScale'
 import { Text, useFontStack } from '@/theme/Typography'
-import { Icon, type IconName } from '@/theme/icons'
-import { useToast } from '@/components/feedback/ToastHost'
+import { Icon } from '@/theme/icons'
 import { useAuth } from '@/lib/auth/AuthProvider'
-import { reportsApi } from '@/lib/api/endpoints'
 import { formatCoordinates } from '@/lib/format'
-import { getCurrentPoint, requestLocationPermission, resolveAddress } from '@/lib/location/geo'
-import { uploadIssueMedia } from '@/lib/media/upload'
-import { useReportDraft, type LocationMode } from '@/features/reporting/useReportDraft'
-import { accent, ink, line, radius, space, surface } from '@/theme/tokens'
+import { MAX_DESCRIPTION, MIN_DESCRIPTION, useReportSubmit } from '@/features/reporting/useReportSubmit'
+import { accent, ink, radius, space, surface } from '@/theme/tokens'
 
 /**
- * Report an issue.
- *
- * The web flow rebuilt for a phone, with the same contract: media goes to the
- * `issue-media` Storage bucket, then `POST /api/reports/process` files the issue and
- * starts the LangGraph pipeline in the background.
- *
- * Two behaviours are deliberate and worth stating:
- *
- *  - Nothing is ever reported as successfully filed unless the server said so. If an
- *    upload or the POST fails, the draft is kept and the failure is explained.
- *  - Media URLs already uploaded in a previous attempt are reused, so a retry after a
- *    network drop does not upload the same photo twice.
+ * Report an issue: three numbered steps (describe, add evidence, set the place), then a
+ * review sheet. The draft persists on the device until the server accepts it. All the
+ * behaviour lives in useReportSubmit; this file is layout only.
  */
-
-const MIN_DESCRIPTION = 10
-const MAX_DESCRIPTION = 1200
-
-type Phase = 'uploading' | 'submitting'
-
-function EvidenceButton({
-  icon,
-  label,
-  onPress,
-  disabled,
-}: {
-  icon: IconName
-  label: string
-  onPress: () => void
-  disabled?: boolean
-}) {
-  return (
-    <PressableScale
-      onPress={onPress}
-      disabled={disabled}
-      haptic="tap"
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={styles.evidenceButtonWrap}
-    >
-      <View style={[styles.evidenceButton, disabled && styles.disabled] as any}>
-        <Icon name={icon} size={19} color={accent.brand} />
-        <Text variant="micro" weight="medium" style={styles.evidenceLabel}>
-          {label}
-        </Text>
-      </View>
-    </PressableScale>
-  )
-}
-
 export default function ReportScreen() {
   const router = useRouter()
-  const toast = useToast()
-  const insets = useSafeAreaInsets()
   const { userId } = useAuth()
-
-  const { draft, update, clearDraft, restoredFrom, dismissRestoredNotice } = useReportDraft()
-
-  const [phase, setPhase] = useState<Phase | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const r = useReportSubmit(userId)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
-  const [locating, setLocating] = useState(false)
-  const [permissionIssue, setPermissionIssue] = useState<string | null>(null)
-  const [voiceUnavailable, setVoiceUnavailable] = useState(false)
-  const [submittedIssueId, setSubmittedIssueId] = useState<string | null>(null)
+  const font = useFontStack()
 
-  // Upload results are cached so a failed POST can be retried without re-uploading.
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
-  const [uploadedVideo, setUploadedVideo] = useState<string | null>(null)
-
-  const description = draft.text
-  const trimmedLength = description.trim().length
-
-  const setLocation = useCallback(
-    (lat: number, lng: number, address: string, mode: LocationMode) => {
-      update({ lat, lng, address, locationMode: mode })
-    },
-    [update]
-  )
-
-  // ── Media ─────────────────────────────────────────────────────────────────
-  const pickImage = useCallback(
-    async (source: 'camera' | 'library') => {
-      setPermissionIssue(null)
-      try {
-        const permission =
-          source === 'camera'
-            ? await ImagePicker.requestCameraPermissionsAsync()
-            : await ImagePicker.requestMediaLibraryPermissionsAsync()
-
-        if (!permission.granted) {
-          setPermissionIssue(
-            source === 'camera'
-              ? 'Camera access is off. Turn it on in Settings to photograph the issue, or attach a photo from your gallery.'
-              : 'Photo access is off. Turn it on in Settings to attach an existing photo.'
-          )
-          return
-        }
-
-        const result =
-          source === 'camera'
-            ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 1 })
-            : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 })
-
-        if (result.canceled || !result.assets?.length) return
-        update({ imageUri: result.assets[0].uri })
-        // A newly chosen photo invalidates any previously uploaded one.
-        setUploadedImage(null)
-      } catch (err: any) {
-        setPermissionIssue(err?.message ?? 'Could not open the camera or gallery.')
-      }
-    },
-    [update]
-  )
-
-  const pickVideo = useCallback(async () => {
-    setPermissionIssue(null)
-    try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (!permission.granted) {
-        setPermissionIssue('Video access is off. Turn it on in Settings to attach a video.')
-        return
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 1 })
-      if (result.canceled || !result.assets?.length) return
-      update({ videoUri: result.assets[0].uri })
-      setUploadedVideo(null)
-    } catch (err: any) {
-      setPermissionIssue(err?.message ?? 'Could not open the gallery for video.')
-    }
-  }, [update])
-
-  // ── Location ──────────────────────────────────────────────────────────────
-  const useCurrentLocation = useCallback(async () => {
-    setLocating(true)
-    setPermissionIssue(null)
-    try {
-      const permission = await requestLocationPermission()
-      if (permission === 'denied') {
-        setPermissionIssue(
-          'Location access is off for CivicPulse. You can still place the pin on the map instead.'
-        )
-        return
-      }
-      if (permission === 'unavailable') {
-        setPermissionIssue('Location services are turned off on this device.')
-        return
-      }
-      const point = await getCurrentPoint()
-      const address = await resolveAddress(point)
-      setLocation(point.lat, point.lng, address, 'gps')
-      toast.success('Location captured.')
-    } catch {
-      setPermissionIssue(
-        'Could not get a GPS fix. Try again outdoors, or drop the pin on the map manually.'
-      )
-    } finally {
-      setLocating(false)
-    }
-  }, [setLocation, toast])
-
-  const handleVoice = useCallback(() => {
-    setVoiceUnavailable(true)
-    toast.info('Voice input is not available in this build. Type your description instead.')
-  }, [toast])
-
-  // ── Validation ────────────────────────────────────────────────────────────
-  const validation = useMemo(() => {
-    if (trimmedLength < MIN_DESCRIPTION) {
-      return { ok: false, message: `Describe the problem in at least ${MIN_DESCRIPTION} characters.` }
-    }
-    if (draft.lat == null || draft.lng == null) {
-      return { ok: false, message: 'Set the location so the right field team can find it.' }
-    }
-    return { ok: true, message: null as string | null }
-  }, [trimmedLength, draft.lat, draft.lng])
-
-  // ── Submit ────────────────────────────────────────────────────────────────
-  const handleSubmit = useCallback(async () => {
-    if (phase) return
-    if (!userId) {
-      setError('You need to be signed in to submit a report.')
-      return
-    }
-    if (!validation.ok) {
-      setError(validation.message)
-      return
-    }
-
-    setError(null)
-    setReviewOpen(false)
-
-    try {
-      let imageUrl = uploadedImage
-      let videoUrl = uploadedVideo
-
-      if (draft.imageUri && !imageUrl) {
-        setPhase('uploading')
-        const uploaded = await uploadIssueMedia({ uri: draft.imageUri, userId, kind: 'image' })
-        imageUrl = uploaded.publicUrl
-        setUploadedImage(imageUrl)
-      }
-
-      if (draft.videoUri && !videoUrl) {
-        setPhase('uploading')
-        const uploaded = await uploadIssueMedia({ uri: draft.videoUri, userId, kind: 'video' })
-        videoUrl = uploaded.publicUrl
-        setUploadedVideo(videoUrl)
-      }
-
-      setPhase('submitting')
-      const response = await reportsApi.process({
-        text: draft.text.trim(),
-        userId,
-        imageUrl,
-        videoUrl,
-        coordinates: {
-          lat: draft.lat as number,
-          lng: draft.lng as number,
-          address: draft.address ?? undefined,
-        },
-      })
-
-      // Only now is it true that the report was filed.
-      await clearDraft()
-      setSubmittedIssueId(response.issueId)
-      toast.success('Report filed. The pipeline is running.', 'Submitted')
-    } catch (err: any) {
-      setError(err?.message ?? 'Could not submit the report. Your draft has been kept.')
-    } finally {
-      setPhase(null)
-    }
-  }, [phase, userId, validation, uploadedImage, uploadedVideo, draft, clearDraft, toast])
-
-  // ── Submitted confirmation ────────────────────────────────────────────────
-  if (submittedIssueId) {
-    return (
-      <Screen padded scroll edges={['top']} contentContainerStyle={styles.submittedContent}>
-        <View style={styles.successMark}>
-          <Icon name="check-circle-outline" size={30} color={accent.brand} />
-        </View>
-        <Text variant="title" center>
-          Your report is in
-        </Text>
-        <Text variant="bodyTight" tone="muted" center style={styles.successBody}>
-          Five agents are processing it now. Classification, duplicate checks and the
-          credibility review usually finish within a minute.
-        </Text>
-
-        <Card style={styles.railCard}>
-          <PipelineRail stage="agent0_translation" showLabels />
-          <Divider style={styles.railDivider} />
-          <Text variant="caption" tone="faint">
-            You can safely close the app — the pipeline runs on the server.
-          </Text>
-        </Card>
-
-        <View style={styles.submittedActions}>
-          <Button
-            label="Track this report"
-            onPress={() => router.replace(`/issue/${submittedIssueId}`)}
-            size="lg"
-            fullWidth
-          />
-          <Button
-            label="Back to home"
-            onPress={() => router.replace('/(citizen)')}
-            variant="secondary"
-            size="lg"
-            fullWidth
-          />
-        </View>
-      </Screen>
-    )
+  if (r.submittedIssueId) {
+    const id = r.submittedIssueId
+    return <SubmittedView onTrack={() => router.replace(`/issue/${id}`)} onHome={() => router.replace('/(citizen)')} />
   }
 
-  const busy = phase !== null
+  const { draft, busy } = r
+  const described = r.trimmedLength >= MIN_DESCRIPTION
+  const located = draft.lat != null && draft.lng != null
+  const hasMedia = Boolean(draft.imageUri || draft.videoUri)
 
   return (
-    <Screen
-      scroll
-      padded
-      avoidKeyboard
-      edges={['top']}
-      contentContainerStyle={styles.content}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <PressableScale onPress={() => router.back()} haptic="tap" accessibilityLabel="Go back">
-          <View style={styles.backButton}>
-            <Icon name="arrow-left" size={19} color={ink.base} />
-          </View>
-        </PressableScale>
-        <View style={styles.headerText}>
-          <Text variant="title">Report an issue</Text>
-          <Text variant="caption" tone="faint">
-            Any language · photo optional
-          </Text>
-        </View>
-      </View>
+    <Screen scroll padded avoidKeyboard edges={['top', 'bottom']} contentContainerStyle={styles.content}>
+      <TopBar title="Report an issue" subtitle="Write in any language. A photo helps, but is optional." />
 
-      {/* Restored draft */}
-      {restoredFrom ? (
+      {r.restoredFrom ? (
         <Notice
           tone="blue"
           title="Draft restored"
-          body="We kept what you had started earlier on this device. Nothing has been sent yet."
-          icon={<Icon name="content-save-outline" size={15} color={accent.blue} />}
+          body="We kept what you started earlier on this device. Nothing has been sent yet."
+          icon={<Icon name="content-save-outline" size={16} color={accent.blue} />}
           actionLabel="Dismiss"
-          onAction={dismissRestoredNotice}
+          onAction={r.dismissRestoredNotice}
         />
       ) : null}
 
-      {/* Description */}
-      <View>
-        <View style={styles.sectionHeader}>
-          <Text variant="heading" weight="semibold">
-            What is the problem?
+      <StepCard
+        step={1}
+        title="What is the problem?"
+        done={described}
+        right={
+          <Text variant="micro" mono tone={r.trimmedLength > MAX_DESCRIPTION - 50 ? accent.amber : 'faint'}>
+            {r.trimmedLength}/{MAX_DESCRIPTION}
           </Text>
-          <Text variant="micro" mono tone={trimmedLength > MAX_DESCRIPTION ? 'base' : 'faint'}>
-            {trimmedLength}/{MAX_DESCRIPTION}
-          </Text>
-        </View>
-        <View style={styles.textAreaWrap}>
-          <ScrollView
-            style={styles.textAreaScroll}
-            contentContainerStyle={styles.textAreaInner}
-            keyboardShouldPersistTaps="handled"
-          >
-            <DescriptionField
-              value={description}
-              onChangeText={(text) => update({ text: text.slice(0, MAX_DESCRIPTION) })}
+        }
+      >
+        <View style={styles.textWell}>
+          <ScrollView style={styles.textScroll} keyboardShouldPersistTaps="handled">
+            <TextInput
+              value={draft.text}
+              onChangeText={(t) => r.update({ text: t.slice(0, MAX_DESCRIPTION) })}
               editable={!busy}
+              multiline
+              textAlignVertical="top"
+              placeholder="e.g. Large pothole by the school gate on Gangapur Road. Two bikes fell here this week."
+              placeholderTextColor={ink.faint}
+              selectionColor={accent.brand}
+              accessibilityLabel="Describe the problem"
+              style={[styles.textArea, { fontFamily: font.regular }]}
             />
           </ScrollView>
         </View>
+      </StepCard>
 
-        <PressableScale onPress={handleVoice} haptic="tap" accessibilityLabel="Voice input">
-          <View style={styles.voiceRow}>
-            <Icon name="microphone-outline" size={16} color={ink.muted} />
-            <Text variant="caption" tone="muted">
-              {voiceUnavailable ? 'Voice input unavailable — type instead' : 'Dictate instead of typing'}
-            </Text>
-          </View>
-        </PressableScale>
-      </View>
-
-      {/* Evidence */}
-      <View>
-        <Text variant="heading" weight="semibold" style={styles.sectionTitle}>
-          Evidence
-        </Text>
-        <Text variant="caption" tone="faint" style={styles.sectionHint}>
-          A photo makes classification and credibility checking noticeably more accurate.
-        </Text>
-
-        <View style={styles.evidenceRow}>
-          <EvidenceButton icon="camera-outline" label="Take photo" onPress={() => pickImage('camera')} disabled={busy} />
-          <EvidenceButton icon="image-outline" label="Gallery" onPress={() => pickImage('library')} disabled={busy} />
-          <EvidenceButton icon="video-outline" label="Video" onPress={pickVideo} disabled={busy} />
+      <StepCard step={2} title="Add a photo" hint="Photos make classification and the credibility check more accurate." done={hasMedia} optional>
+        <View style={styles.tiles}>
+          <ActionTile icon="camera-outline" label="Camera" onPress={() => r.pickImage('camera')} disabled={busy} />
+          <ActionTile icon="image-outline" label="Gallery" onPress={() => r.pickImage('library')} disabled={busy} />
+          <ActionTile icon="video-outline" label="Video" onPress={r.pickVideo} disabled={busy} />
         </View>
-
-        {(draft.imageUri || draft.videoUri) && (
+        {hasMedia ? (
           <View style={styles.thumbs}>
-            {draft.imageUri ? (
-              <MediaThumb
-                uri={draft.imageUri}
-                kind="image"
-                label="Photo"
-                onRemove={() => {
-                  update({ imageUri: null })
-                  setUploadedImage(null)
-                }}
-              />
-            ) : null}
-            {draft.videoUri ? (
-              <MediaThumb
-                uri={draft.videoUri}
-                kind="video"
-                label="Video"
-                onRemove={() => {
-                  update({ videoUri: null })
-                  setUploadedVideo(null)
-                }}
-              />
-            ) : null}
+            {draft.imageUri ? <MediaThumb uri={draft.imageUri} kind="image" label="Photo" onRemove={r.removeImage} /> : null}
+            {draft.videoUri ? <MediaThumb uri={draft.videoUri} kind="video" label="Video" onRemove={r.removeVideo} /> : null}
           </View>
-        )}
-      </View>
-
-      {/* Location */}
-      <View>
-        <Text variant="heading" weight="semibold" style={styles.sectionTitle}>
-          Location
-        </Text>
-        <Text variant="caption" tone="faint" style={styles.sectionHint}>
-          Duplicate detection only looks within 200 m, so an accurate pin matters.
-        </Text>
-
-        <View style={styles.evidenceRow}>
-          <EvidenceButton
-            icon={locating ? 'crosshairs' : 'crosshairs-gps'}
-            label={locating ? 'Locating…' : 'Use GPS'}
-            onPress={useCurrentLocation}
-            disabled={busy || locating}
-          />
-          <EvidenceButton icon="map-marker-outline" label="Pick on map" onPress={() => setPickerOpen(true)} disabled={busy} />
-        </View>
-
-        {draft.lat != null && draft.lng != null ? (
-          <Card variant="sunken" style={styles.locationCard}>
-            <View style={styles.locationRow}>
-              <Icon name="map-marker-check-outline" size={16} color={accent.brand} />
-              <View style={styles.locationBody}>
-                <Text variant="bodyTight" weight="medium" numberOfLines={2}>
-                  {draft.address ?? 'Location recorded'}
-                </Text>
-                <Text variant="micro" mono tone="faint">
-                  {formatCoordinates(draft.lat, draft.lng)} · {draft.locationMode === 'gps' ? 'GPS' : 'Map pin'}
-                </Text>
-              </View>
-              <PressableScale
-                onPress={() => setPickerOpen(true)}
-                haptic="tap"
-                accessibilityLabel="Adjust location"
-              >
-                <View style={styles.adjustButton}>
-                  <Text variant="micro" weight="semibold" style={{ color: accent.blue }}>
-                    Adjust
-                  </Text>
-                </View>
-              </PressableScale>
-            </View>
-          </Card>
         ) : null}
-      </View>
+      </StepCard>
 
-      {permissionIssue ? (
+      <StepCard step={3} title="Where is it?" hint="The duplicate check only looks within 200 m, so an accurate pin matters." done={located}>
+        {located ? (
+          <View style={styles.place}>
+            <View style={styles.placeIcon}>
+              <Icon name="map-marker-check-outline" size={20} color={ink.inverse} />
+            </View>
+            <View style={styles.flex}>
+              <Text variant="bodyTight" weight="semibold" numberOfLines={2}>
+                {draft.address ?? 'Location recorded'}
+              </Text>
+              <Text variant="micro" mono tone="faint">
+                {formatCoordinates(draft.lat as number, draft.lng as number)} · {draft.locationMode === 'gps' ? 'GPS' : 'Map pin'}
+              </Text>
+            </View>
+            <PressableScale onPress={() => setPickerOpen(true)} haptic="tap" accessibilityRole="button" accessibilityLabel="Adjust location">
+              <Text variant="label" weight="semibold" style={{ color: accent.blue }}>
+                Adjust
+              </Text>
+            </PressableScale>
+          </View>
+        ) : null}
+        <View style={styles.tiles}>
+          <ActionTile
+            icon={r.locating ? 'crosshairs' : 'crosshairs-gps'}
+            label={r.locating ? 'Locating…' : 'Use GPS'}
+            onPress={r.useCurrentLocation}
+            disabled={busy || r.locating}
+          />
+          <ActionTile icon="map-marker-outline" label="Pick on map" onPress={() => setPickerOpen(true)} disabled={busy} />
+        </View>
+      </StepCard>
+
+      {r.permissionIssue ? (
         <Notice
           tone="amber"
           title="Permission needed"
-          body={permissionIssue}
-          icon={<Icon name="shield-alert-outline" size={15} color={accent.amberSoft} />}
+          body={r.permissionIssue}
+          icon={<Icon name="shield-alert-outline" size={16} color={accent.amberSoft} />}
           actionLabel="Dismiss"
-          onAction={() => setPermissionIssue(null)}
+          onAction={() => r.setPermissionIssue(null)}
         />
       ) : null}
 
-      {error ? (
-        <Notice
-          tone="red"
-          title="Report not submitted"
-          body={error}
-          icon={<Icon name="alert-circle-outline" size={15} color={accent.redSoft} />}
-          actionLabel="Dismiss"
-          onAction={() => setError(null)}
-        />
+      {r.error ? (
+        <Notice tone="red" title="Not submitted" body={r.error} icon={<Icon name="alert-circle-outline" size={16} color={accent.red} />} />
       ) : null}
 
-      {/* Actions */}
       <View style={styles.actions}>
-        {uploadedImage || uploadedVideo ? (
-          <Notice
-            tone="blue"
-            body="Your evidence uploaded successfully but the report was not filed yet. Submitting again will reuse it."
-          />
-        ) : null}
         <Button
-          label={validation.ok ? 'Review and submit' : 'Complete the report'}
-          onPress={() => (validation.ok ? setReviewOpen(true) : setError(validation.message))}
+          label={busy ? (r.phase === 'uploading' ? 'Uploading evidence' : 'Filing your report') : r.validation.ok ? 'Review and submit' : 'Complete the steps above'}
+          onPress={() => (r.validation.ok ? setReviewOpen(true) : r.setError(r.validation.message))}
           size="lg"
           fullWidth
-          disabled={busy}
+          trailingArrow={r.validation.ok && !busy}
           loading={busy}
         />
-        <Text variant="micro" tone="faint" center>
-          {phase === 'uploading'
-            ? 'Uploading evidence…'
-            : phase === 'submitting'
-              ? 'Filing your report…'
-              : 'Your report is saved on this device until you submit it.'}
+        <Text variant="caption" tone="faint" center>
+          Your report is saved on this device until you submit it.
         </Text>
       </View>
 
-      {/* Review sheet */}
-      <Modal visible={reviewOpen} animationType="slide" transparent onRequestClose={() => setReviewOpen(false)} statusBarTranslucent>
-        <View style={styles.backdrop}>
-          <View style={[styles.sheet, { paddingBottom: insets.bottom + space.lg }]}>
-            <Text variant="title">Check before you submit</Text>
-            <Text variant="caption" tone="faint">
-              This is exactly what the five agents will receive.
-            </Text>
-
-            <Card variant="sunken" style={styles.reviewCard}>
-              <ReviewRow label="Description" value={description.trim()} />
-              <Divider style={styles.reviewDivider} />
-              <ReviewRow
-                label="Evidence"
-                value={
-                  [draft.imageUri ? 'Photo' : null, draft.videoUri ? 'Video' : null]
-                    .filter(Boolean)
-                    .join(' + ') || 'None'
-                }
-              />
-              <Divider style={styles.reviewDivider} />
-              <ReviewRow label="Location" value={draft.address ?? 'Not set'} />
-              <Divider style={styles.reviewDivider} />
-              <ReviewRow
-                label="Coordinates"
-                value={
-                  draft.lat != null && draft.lng != null
-                    ? formatCoordinates(draft.lat, draft.lng)
-                    : 'Not set'
-                }
-                mono
-              />
-            </Card>
-
-            <View style={styles.sheetActions}>
-              <Button
-                label="Submit report"
-                onPress={handleSubmit}
-                size="lg"
-                fullWidth
-                icon={<Icon name="send-outline" size={17} color="#ffffff" />}
-              />
-              <Button label="Keep editing" onPress={() => setReviewOpen(false)} variant="ghost" fullWidth />
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ReviewSheet
+        visible={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+        onSubmit={() => {
+          setReviewOpen(false)
+          r.submit()
+        }}
+        text={draft.text.trim()}
+        imageUri={draft.imageUri}
+        videoUri={draft.videoUri}
+        address={draft.address}
+        lat={draft.lat}
+        lng={draft.lng}
+      />
 
       <LocationPickerSheet
         visible={pickerOpen}
-        initial={draft.lat != null && draft.lng != null ? { lat: draft.lat, lng: draft.lng } : null}
+        initial={located ? { lat: draft.lat as number, lng: draft.lng as number } : null}
         onClose={() => setPickerOpen(false)}
         onConfirm={(point, address) => {
-          setLocation(point.lat, point.lng, address, 'map')
+          r.setLocation(point.lat, point.lng, address, 'map')
           setPickerOpen(false)
         }}
       />
@@ -569,146 +188,16 @@ export default function ReportScreen() {
   )
 }
 
-/**
- * The description field.
- *
- * A multiline `TextInput` inside an explicitly bounded scroll view: without the bound
- * the field grows unbounded (swallowing the whole screen) on Android, which is the
- * classic long-text-entry layout bug. The font family comes from the stack so the
- * field matches the surrounding type even if custom fonts failed to load.
- */
-function DescriptionField({
-  value,
-  onChangeText,
-  editable,
-}: {
-  value: string
-  onChangeText: (text: string) => void
-  editable: boolean
-}) {
-  const fontStack = useFontStack()
-
-  return (
-    <TextInput
-      value={value}
-      onChangeText={onChangeText}
-      editable={editable}
-      multiline
-      textAlignVertical="top"
-      placeholder="e.g. Large pothole near the school gate on Gangapur Road — two bikes fell here this week."
-      placeholderTextColor={ink.faint}
-      selectionColor={accent.brand}
-      style={[styles.textArea, { fontFamily: fontStack.regular }]}
-    />
-  )
-}
-
-function ReviewRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <View style={styles.reviewRow}>
-      <Text variant="micro" weight="medium" tone="faint">
-        {label}
-      </Text>
-      <Text variant={mono ? 'data' : 'bodyTight'} numberOfLines={4} style={styles.reviewValue}>
-        {value}
-      </Text>
-    </View>
-  )
-}
-
 const styles = StyleSheet.create({
-  content: { gap: space.xl, paddingBottom: space.huge },
-  header: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  backButton: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: surface.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-  },
-  headerText: { flex: 1, gap: 1 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-  sectionTitle: { marginBottom: 2 },
-  sectionHint: { marginBottom: space.md },
-  textAreaWrap: {
-    marginTop: space.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: line.base,
-    backgroundColor: surface.sunken,
-    overflow: 'hidden',
-  },
-  textAreaScroll: { maxHeight: 168 },
-  textAreaInner: { padding: space.md },
-  textArea: {
-    minHeight: 130,
-    color: ink.base,
-    fontSize: 16,
-    lineHeight: 23,
-    padding: 0,
-  },
-  voiceRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingTop: space.md },
-  evidenceRow: { flexDirection: 'row', gap: space.md },
-  evidenceButtonWrap: { flex: 1 },
-  evidenceButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: space.md,
-    borderRadius: radius.md,
-    backgroundColor: surface.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-    minHeight: 74,
-  },
-  evidenceLabel: { color: ink.muted },
-  disabled: { opacity: 0.5 },
-  thumbs: { flexDirection: 'row', gap: space.md, marginTop: space.md, flexWrap: 'wrap' },
-  locationCard: { marginTop: space.md },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  locationBody: { flex: 1, gap: 2 },
-  adjustButton: {
-    paddingHorizontal: space.md,
-    paddingVertical: 7,
-    borderRadius: radius.sm,
-    backgroundColor: 'rgba(9,105,218,0.14)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(9,105,218,0.4)',
-  },
-  actions: { gap: space.md },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: surface.canvas,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-    padding: space.lg,
-    gap: space.md,
-    maxHeight: '88%',
-  },
-  reviewCard: { gap: space.md },
-  reviewRow: { gap: 3 },
-  reviewValue: { flexShrink: 1 },
-  reviewDivider: { marginVertical: -space.sm },
-  sheetActions: { gap: space.sm, marginTop: space.sm },
-  submittedContent: { flexGrow: 1, justifyContent: 'center', gap: space.lg },
-  successMark: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    backgroundColor: 'rgba(45,164,78,0.14)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(45,164,78,0.45)',
-  },
-  successBody: { maxWidth: 340, alignSelf: 'center' },
-  railCard: { gap: space.lg },
-  railDivider: { marginVertical: space.xs },
-  submittedActions: { gap: space.md, marginTop: space.sm },
+  content: { gap: space.lg, paddingBottom: space.xxl },
+  textWell: { borderRadius: radius.md, backgroundColor: surface.sunken, overflow: 'hidden' },
+  // Bounded so the multiline field cannot grow to swallow the screen on Android.
+  textScroll: { maxHeight: 180 },
+  textArea: { minHeight: 130, color: ink.base, fontSize: 16, lineHeight: 24, padding: space.lg },
+  tiles: { flexDirection: 'row', gap: space.sm },
+  thumbs: { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' },
+  place: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.md, backgroundColor: surface.mist },
+  placeIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: ink.base, alignItems: 'center', justifyContent: 'center' },
+  flex: { flex: 1, gap: 2 },
+  actions: { gap: space.sm, marginTop: space.sm },
 })

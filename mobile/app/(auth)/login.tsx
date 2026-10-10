@@ -1,23 +1,25 @@
 import React, { useCallback, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
-import { Link, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 
 import { Button } from '@/components/ui/Button'
 import { Notice } from '@/components/ui/Feedback'
 import { Input } from '@/components/ui/Input'
 import { Screen } from '@/components/ui/Screen'
 import { useToast } from '@/components/feedback/ToastHost'
-import { PipelineRail } from '@/components/pipeline/PipelineRail'
+import { Rail } from '@/components/pipeline/Rail'
+import { Card } from '@/components/ui/Card'
+import { Rise } from '@/components/ui/Motion'
 import { Text } from '@/theme/Typography'
 import { Icon } from '@/theme/icons'
 import { useAuth } from '@/lib/auth/AuthProvider'
 import { env } from '@/lib/env'
-import { accent, ink, line, radius, space, surface } from '@/theme/tokens'
+import { accent, ink, radius, space } from '@/theme/tokens'
 
 /**
  * Sign-in.
  *
- * The hero is the pipeline itself. Rather than a generic logo block, the first thing
+ * The hero is the pipeline itself, on navy, with the first agent already working. Rather than a generic logo block, the first thing
  * a new citizen sees is the five agents that will handle their report — which is
  * simultaneously the brand mark and an explanation of what the app does.
  *
@@ -81,30 +83,29 @@ export default function LoginScreen() {
   }, [googleBusy, signInWithGoogle, toast])
 
   return (
-    <Screen padded scroll contentContainerStyle={styles.content}>
-      {/* Hero: the product explains itself */}
-      <View style={styles.hero}>
-        <View style={styles.markRow}>
-          <View style={styles.mark}>
-            <Icon name="city-variant-outline" size={20} color={accent.brand} />
+    <Screen padded scroll avoidKeyboard edges={['top', 'bottom']} contentContainerStyle={styles.content}>
+      <Rise index={0}>
+        <Card variant="hero" style={styles.hero}>
+          <View style={styles.markRow}>
+            <View style={styles.mark}>
+              <Icon name="city-variant-outline" size={22} color={ink.base} />
+            </View>
+            <Text variant="heading" tone="inverse">
+              CivicPulse
+            </Text>
           </View>
-          <Text variant="title" weight="bold">
-            CivicPulse
+          <Text variant="display" tone="inverse">
+            Fix your street, one report at a time
           </Text>
-        </View>
+          <Text variant="bodyTight" tone="inverseMuted">
+            Five AI agents classify your report, check it against nearby ones, verify it, and hand it to the right department with a deadline.
+          </Text>
+          <Rail stage="agent1_classifier" tone="onDark" style={styles.rail} />
+        </Card>
+      </Rise>
 
-        <Text variant="body" tone="muted" style={styles.tagline}>
-          Report a civic problem. Five AI agents classify it, check it against nearby
-          reports, verify it, and hand it to the right department with a deadline.
-        </Text>
-
-        <View style={styles.railCard}>
-          <PipelineRail stage={null} showLabels />
-        </View>
-      </View>
-
-      {/* Form */}
-      <View style={styles.form}>
+      <Rise index={1} style={styles.form}>
+        <Text variant="title">Sign in</Text>
         <Input
           label="Email address"
           placeholder="you@example.com"
@@ -122,19 +123,11 @@ export default function LoginScreen() {
           error={error}
           editable={!sending && !googleBusy}
         />
-
-        <Button
-          label="Send sign-in code"
-          onPress={handleEmail}
-          loading={sending}
-          disabled={googleBusy}
-          fullWidth
-          size="lg"
-        />
+        <Button label="Email me a sign-in code" onPress={handleEmail} loading={sending} disabled={googleBusy} fullWidth size="lg" trailingArrow />
 
         <View style={styles.dividerRow}>
           <View style={styles.dividerLine} />
-          <Text variant="micro" weight="medium" tone="faint">
+          <Text variant="caption" tone="faint">
             or
           </Text>
           <View style={styles.dividerLine} />
@@ -148,14 +141,12 @@ export default function LoginScreen() {
           variant="secondary"
           fullWidth
           size="lg"
-          icon={<Icon name="google" size={18} color={ink.base} />}
+          icon={<Icon name="google" size={20} color={ink.base} />}
         />
 
-        <Notice
-          body="Municipal staff accounts are recognised automatically and open the municipal console instead of the citizen app."
-          icon={<Icon name="shield-account-outline" size={15} color={accent.blue} />}
-          tone="blue"
-        />
+        <Text variant="caption" tone="faint" center style={styles.legal}>
+          Municipal staff accounts open the municipal console automatically. Reports are public and verified by neighbours, so please report in good faith.
+        </Text>
 
         {SHOW_AUTH_DEBUG ? (
           <Notice
@@ -164,42 +155,19 @@ export default function LoginScreen() {
             body={`This device sends:\n${env.authRedirect}\n\nIf Google lands on localhost:3000, Supabase rejected it. Add this exact URL to Supabase > Authentication > URL Configuration > Redirect URLs, then run: sh scripts/check-auth-redirect.sh '${env.authRedirect}'`}
           />
         ) : null}
-
-        <Text variant="caption" tone="faint" center style={styles.legal}>
-          By continuing you agree to report in good faith. Reports are public and
-          verified by neighbours.
-        </Text>
-      </View>
+      </Rise>
     </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  content: { flexGrow: 1, justifyContent: 'center' },
-  hero: { gap: space.md },
-  markRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  mark: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(45,164,78,0.12)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(45,164,78,0.4)',
-  },
-  tagline: { maxWidth: 420 },
-  railCard: {
-    marginTop: space.sm,
-    paddingVertical: space.lg,
-    paddingHorizontal: space.md,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-    backgroundColor: surface.card,
-  },
-  form: { marginTop: space.xxxl, gap: space.lg },
+  content: { flexGrow: 1, justifyContent: 'center', gap: space.xxl, paddingTop: space.lg },
+  hero: { gap: space.md, padding: space.xl, borderRadius: radius.xl },
+  markRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginBottom: space.sm },
+  mark: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: accent.kerb },
+  rail: { marginTop: space.md },
+  form: { gap: space.lg },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: line.soft },
-  legal: { marginTop: space.sm, maxWidth: 340, alignSelf: 'center' },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: '#D9D5CC' },
+  legal: { maxWidth: 340, alignSelf: 'center' },
 })

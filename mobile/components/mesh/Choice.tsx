@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native'
 import { PressableScale } from '@/components/ui/PressableScale'
 import { Text } from '@/theme/Typography'
 import { Icon, type IconName } from '@/theme/icons'
-import { accent, ink, line, radius, space, surface } from '@/theme/tokens'
+import { ink, radius, space, surface } from '@/theme/tokens'
 
 /** A single-select pill. Selection is shown by colour AND weight, and exposed as a radio to screen readers. */
 export function Choice({
@@ -21,11 +21,11 @@ export function Choice({
   return (
     <PressableScale onPress={onPress} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={label}>
       <View style={[styles.choice, selected && styles.choiceOn]}>
-        {icon ? <Icon name={icon} size={16} color={selected ? accent.brand : ink.muted} /> : null}
+        {icon ? <Icon name={icon} size={17} color={selected ? ink.inverse : ink.muted} /> : null}
         <Text
           variant="bodyTight"
           weight={selected ? 'semibold' : 'medium'}
-          style={{ color: selected ? accent.brand : ink.base }}
+          style={{ color: selected ? ink.inverse : ink.base }}
         >
           {label}
         </Text>
@@ -39,12 +39,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.xs,
-    minHeight: 44,
+    minHeight: 46,
     paddingHorizontal: space.lg,
     borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: line.base,
-    backgroundColor: surface.sunken,
+    backgroundColor: surface.mist,
   },
-  choiceOn: { borderColor: accent.brand, backgroundColor: 'rgba(45,164,78,0.12)' },
+  choiceOn: { backgroundColor: ink.base },
 })

@@ -26,7 +26,7 @@ export function ConnectionCheck() {
   return (
     <View style={styles.wrap}>
       <Text variant="micro" weight="medium" tone="faint">
-        BACKEND THIS APP IS USING
+        Backend this app is using
       </Text>
       <Text variant="data" selectable style={styles.url}>
         {env.apiUrl || '(empty)'}

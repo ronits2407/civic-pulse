@@ -7,18 +7,18 @@ import { StatusBar } from 'expo-status-bar'
 import * as SplashScreen from 'expo-splash-screen'
 
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
+  Mukta_400Regular,
+  Mukta_500Medium,
+  Mukta_600SemiBold,
+  Mukta_700Bold,
   useFonts,
-} from '@expo-google-fonts/inter'
+} from '@expo-google-fonts/mukta'
 import {
-  JetBrainsMono_400Regular,
-  JetBrainsMono_500Medium,
-  JetBrainsMono_600SemiBold,
-  useFonts as useMonoFonts,
-} from '@expo-google-fonts/jetbrains-mono'
+  AnekLatin_500Medium,
+  AnekLatin_600SemiBold,
+  AnekLatin_700Bold,
+  useFonts as useDisplayFonts,
+} from '@expo-google-fonts/anek-latin'
 
 import { ToastHost } from '@/components/feedback/ToastHost'
 import { AuthProvider } from '@/lib/auth/AuthProvider'
@@ -36,16 +36,16 @@ SplashScreen.preventAutoHideAsync().catch(() => {})
  * (the toast host does), and FontProvider must wrap every `Text` in the tree.
  */
 export default function RootLayout() {
-  const [interLoaded, interError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+  const [bodyLoaded, bodyError] = useFonts({
+    Mukta_400Regular,
+    Mukta_500Medium,
+    Mukta_600SemiBold,
+    Mukta_700Bold,
   })
-  const [monoLoaded, monoError] = useMonoFonts({
-    JetBrainsMono_400Regular,
-    JetBrainsMono_500Medium,
-    JetBrainsMono_600SemiBold,
+  const [displayLoaded, displayError] = useDisplayFonts({
+    AnekLatin_500Medium,
+    AnekLatin_600SemiBold,
+    AnekLatin_700Bold,
   })
 
   /**
@@ -53,8 +53,8 @@ export default function RootLayout() {
    * app proceeds on system faces (see FontProvider), so we stop waiting either when
    * they arrive OR when they definitively fail.
    */
-  const fontsSettled = (interLoaded && monoLoaded) || Boolean(interError || monoError)
-  const fontsReady = interLoaded && monoLoaded
+  const fontsSettled = (bodyLoaded && displayLoaded) || Boolean(bodyError || displayError)
+  const fontsReady = bodyLoaded && displayLoaded
 
   const [timedOut, setTimedOut] = useState(false)
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function RootLayout() {
         <FontProvider loaded={fontsReady}>
           <AuthProvider>
             <ToastHost>
-              <StatusBar style="light" />
+              <StatusBar style="dark" />
               <Stack screenOptions={{ ...pushedScreenOptions, headerShown: false }}>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />

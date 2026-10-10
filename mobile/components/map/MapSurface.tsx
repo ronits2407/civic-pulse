@@ -5,7 +5,7 @@ import { IncidentMap, type MapMarker, type MapRegion } from '@/components/map/In
 import { MapErrorBoundary } from '@/components/map/MapErrorBoundary'
 import { NearbyFallback, type FallbackItem } from '@/components/map/NearbyFallback'
 import type { LatLng } from '@/lib/location/postgis'
-import { radius, surface } from '@/theme/tokens'
+import { radius } from '@/theme/tokens'
 
 /**
  * Map container used by Home and the Map tab.
@@ -28,6 +28,9 @@ export interface MapSurfaceProps {
   userLocation?: LatLng | null
   interactive?: boolean
   height?: number
+  /** Fill the parent edge to edge with no rounded frame (the Map tab). */
+  bleed?: boolean
+  controlsTop?: number
   style?: StyleProp<ViewStyle>
 }
 
@@ -42,6 +45,8 @@ export function MapSurface({
   userLocation,
   interactive = true,
   height = 260,
+  bleed = false,
+  controlsTop,
   style,
 }: MapSurfaceProps) {
   const fallback = (
@@ -53,7 +58,7 @@ export function MapSurface({
   return (
     <View style={style}>
       <MapErrorBoundary fallback={fallback}>
-        <View style={[styles.mapWrap, { height }]}>
+        <View style={bleed ? styles.bleed : [styles.mapWrap, { height }]}>
           <IncidentMap
             markers={markers}
             initialRegion={region}
@@ -63,6 +68,7 @@ export function MapSurface({
             onRegionChangeComplete={onRegionChangeComplete}
             userLocation={userLocation}
             interactive={interactive}
+            controlsTop={controlsTop}
             style={StyleSheet.absoluteFill}
           />
         </View>
@@ -76,9 +82,8 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: radius.lg,
     overflow: 'hidden',
-    backgroundColor: surface.sunken,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#30363d',
+    backgroundColor: '#E8E6E0',
   },
+  bleed: { flex: 1, backgroundColor: '#E8E6E0' },
   fallbackWrap: { width: '100%' },
 })

@@ -7,7 +7,7 @@ import { Icon } from '@/theme/icons'
 import { REJECT_MESSAGE } from '@/components/mesh/meta'
 import type { CreateAlertInput, CreateAlertOutcome } from '@/lib/mesh/engine'
 import { getCurrentPoint, requestLocationPermission } from '@/lib/location/geo'
-import { accent, ink, line, radius, space, surface } from '@/theme/tokens'
+import { accent, radius, space, surface } from '@/theme/tokens'
 
 /**
  * SOS confirmation.
@@ -92,8 +92,8 @@ export function SosSheet({ visible, relayOn, onClose, onSend }: Props) {
             <Switch
               value={shareLocation}
               onValueChange={setShareLocation}
-              trackColor={{ false: line.base, true: accent.brandDim }}
-              thumbColor={shareLocation ? accent.brand : ink.muted}
+              trackColor={{ false: '#D9D5CC', true: accent.brandDim }}
+              thumbColor={shareLocation ? accent.brand : '#FFFFFF'}
               accessibilityLabel="Include my exact location"
             />
           </View>
@@ -119,13 +119,11 @@ export function SosSheet({ visible, relayOn, onClose, onSend }: Props) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, gap: 2 },
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(20,28,46,0.5)' },
   sheet: {
-    backgroundColor: surface.card,
+    backgroundColor: surface.canvas,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
     padding: space.xl,
     gap: space.md,
   },
@@ -136,7 +134,7 @@ const styles = StyleSheet.create({
     gap: space.md,
     padding: space.md,
     borderRadius: radius.md,
-    backgroundColor: surface.sunken,
+    backgroundColor: surface.card,
     minHeight: 56,
   },
   sendButton: { backgroundColor: accent.red, borderColor: accent.red },

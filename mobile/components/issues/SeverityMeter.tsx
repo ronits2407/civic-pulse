@@ -3,7 +3,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 
 import { severityFraction, severityMeta } from '@/lib/format'
 import { Text } from '@/theme/Typography'
-import { line, radius, space } from '@/theme/tokens'
+import { radius, space } from '@/theme/tokens'
 
 /**
  * Ten-segment severity meter.
@@ -38,8 +38,7 @@ export function SeverityMeter({
             style={[
               styles.block,
               {
-                backgroundColor: i < lit ? meta.color : 'transparent',
-                borderColor: i < lit ? meta.color : line.soft,
+                backgroundColor: i < lit ? meta.color : '#E7E4DD',
               },
             ]}
           />
@@ -63,9 +62,8 @@ const styles = StyleSheet.create({
   blocks: { flexDirection: 'row', gap: 3 },
   block: {
     flex: 1,
-    height: 5,
+    height: 7,
     borderRadius: radius.sm / 2,
-    borderWidth: StyleSheet.hairlineWidth,
   },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: space.sm },
 })

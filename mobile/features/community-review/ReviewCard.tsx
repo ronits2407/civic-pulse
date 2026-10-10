@@ -14,7 +14,7 @@ import { Icon } from '@/theme/icons'
 import { credibilityMeta, formatDistance, timeAgo } from '@/lib/format'
 import type { VoteOutcome } from '@/lib/api/contracts'
 import type { ReviewQueueItem } from '@/hooks/useReviewQueue'
-import { TONE_COLOR, TONE_TINT, accent, ink, line, radius, space, type Tone } from '@/theme/tokens'
+import { TONE_COLOR, TONE_TINT, accent, ink, radius, space, surface, type Tone } from '@/theme/tokens'
 
 /**
  * One community-verification card.
@@ -75,7 +75,17 @@ export function ReviewCard({
 
   return (
     <Card style={styles.card}>
-      {/* Header */}
+      {item.photo_url ? (
+        <Image source={{ uri: item.photo_url }} style={styles.photo} contentFit="cover" transition={200} />
+      ) : (
+        <View style={styles.noPhoto}>
+          <Icon name="image-off-outline" size={18} color={ink.faint} />
+          <Text variant="caption" tone="faint">
+            No photo was attached
+          </Text>
+        </View>
+      )}
+
       <View style={styles.topRow}>
         <CategoryChip category={item.category} dense />
         <View style={styles.topRight}>
@@ -93,20 +103,9 @@ export function ReviewCard({
         </View>
       </View>
 
-      <Text variant="heading" weight="semibold">
+      <Text variant="title">
         {item.title?.trim() || 'Untitled report'}
       </Text>
-
-      {item.photo_url ? (
-        <Image source={{ uri: item.photo_url }} style={styles.photo} contentFit="cover" transition={200} />
-      ) : (
-        <View style={styles.noPhoto}>
-          <Icon name="image-off-outline" size={17} color={ink.faint} />
-          <Text variant="micro" tone="faint">
-            No photo was attached
-          </Text>
-        </View>
-      )}
 
       <Text variant="bodyTight" style={styles.description} numberOfLines={6}>
         {item.description}
@@ -127,8 +126,8 @@ export function ReviewCard({
 
         {item.reasoning ? (
           <View style={styles.reasoningBox}>
-            <Text variant="micro" weight="medium" tone="faint">
-              WHY THIS NEEDS YOU
+            <Text variant="caption" weight="semibold">
+              Why this needs you
             </Text>
             <Text variant="caption" tone="muted" style={styles.reasoningText}>
               {item.reasoning}
@@ -184,13 +183,13 @@ export function ReviewCard({
 
           <View style={styles.verdictRow}>
             <Button
-              label="This is real"
+              label="It's real"
               onPress={() => submit(true)}
               loading={submitting}
               disabled={submitting}
               size="lg"
               style={styles.verdictButton}
-              icon={<Icon name="thumb-up-outline" size={16} color="#ffffff" />}
+              icon={<Icon name="check" size={18} color={ink.inverse} />}
             />
             <Button
               label="Not there"
@@ -200,7 +199,7 @@ export function ReviewCard({
               variant="danger"
               size="lg"
               style={styles.verdictButton}
-              icon={<Icon name="thumb-down-outline" size={16} color={accent.redSoft} />}
+              icon={<Icon name="close" size={18} color={accent.red} />}
             />
           </View>
 
@@ -214,20 +213,18 @@ export function ReviewCard({
 }
 
 const styles = StyleSheet.create({
-  card: { gap: space.md },
+  card: { gap: space.md, padding: space.md, paddingBottom: space.lg },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
   topRight: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  photo: { width: '100%', aspectRatio: 16 / 10, borderRadius: radius.md },
+  photo: { width: '100%', aspectRatio: 16 / 10, borderRadius: radius.md + 2 },
   noPhoto: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: space.sm,
-    paddingVertical: space.xl,
-    borderRadius: radius.md,
-    backgroundColor: '#0b0f14',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.soft,
+    paddingVertical: space.xxl,
+    borderRadius: radius.md + 2,
+    backgroundColor: surface.sunken,
   },
   description: { lineHeight: 22 },
   agentBlock: { gap: space.md },
@@ -236,11 +233,9 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: space.md,
     borderRadius: radius.md,
-    backgroundColor: '#0b0f14',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.soft,
+    backgroundColor: surface.mist,
   },
-  reasoningText: { lineHeight: 18 },
+  reasoningText: { lineHeight: 19 },
   addNote: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: space.xs },
   verdictRow: { flexDirection: 'row', gap: space.md },
   verdictButton: { flex: 1 },

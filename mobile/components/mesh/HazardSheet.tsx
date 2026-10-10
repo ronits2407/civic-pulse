@@ -18,7 +18,7 @@ import type { CreateAlertInput, CreateAlertOutcome } from '@/lib/mesh/engine'
 import type { AlertSeverity, AlertType } from '@/lib/mesh/protocol'
 import { validateSummary } from '@/lib/mesh/validate'
 import { getCurrentPoint, requestLocationPermission } from '@/lib/location/geo'
-import { accent, ink, line, radius, space, surface } from '@/theme/tokens'
+import { accent, radius, space, surface } from '@/theme/tokens'
 
 /** Local public hazard alert: fixed categories, validated with the same rules a receiver applies. */
 interface Props {
@@ -76,7 +76,7 @@ export function HazardSheet({ visible, onClose, onSend }: Props) {
             </Text>
 
             <Text variant="label" weight="semibold" tone="muted">
-              WHAT IS HAPPENING
+              What is happening
             </Text>
             <View style={styles.chips}>
               {HAZARD_TYPES.map((t) => (
@@ -85,7 +85,7 @@ export function HazardSheet({ visible, onClose, onSend }: Props) {
             </View>
 
             <Text variant="label" weight="semibold" tone="muted">
-              HOW SERIOUS
+              How serious
             </Text>
             <View style={styles.chips}>
               {HAZARD_SEVERITIES.map((s) => (
@@ -116,8 +116,8 @@ export function HazardSheet({ visible, onClose, onSend }: Props) {
               <Switch
                 value={shareLocation}
                 onValueChange={setShareLocation}
-                trackColor={{ false: line.base, true: accent.brandDim }}
-                thumbColor={shareLocation ? accent.brand : ink.muted}
+                trackColor={{ false: '#D9D5CC', true: accent.brandDim }}
+                thumbColor={shareLocation ? accent.brand : '#FFFFFF'}
                 accessibilityLabel="Include the location"
               />
             </View>
@@ -133,14 +133,12 @@ export function HazardSheet({ visible, onClose, onSend }: Props) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, gap: 2 },
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(20,28,46,0.5)' },
   sheet: {
     maxHeight: '90%',
-    backgroundColor: surface.card,
+    backgroundColor: surface.canvas,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
   },
   content: { padding: space.xl, gap: space.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
@@ -150,7 +148,7 @@ const styles = StyleSheet.create({
     gap: space.md,
     padding: space.md,
     borderRadius: radius.md,
-    backgroundColor: surface.sunken,
+    backgroundColor: surface.card,
     minHeight: 56,
   },
 })

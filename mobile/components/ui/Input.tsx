@@ -9,13 +9,12 @@ import {
 } from 'react-native'
 
 import { Text, useFontStack } from '@/theme/Typography'
-import { accent, ink, line, radius, space, surface } from '@/theme/tokens'
+import { accent, ink, radius, space } from '@/theme/tokens'
 
 /**
  * Text input with a labelled frame and a visible focus ring.
  *
- * The focus colour is the same `#0969da` the web app uses for input focus, so the
- * interaction language matches across platforms.
+ * Inputs sit in a soft paper well; focus draws a navy ring, errors a red one.
  */
 
 export interface InputProps extends TextInputProps {
@@ -66,12 +65,12 @@ export function Input({
     [onBlur]
   )
 
-  const borderColor = error ? accent.redSoft : focused ? accent.blue : line.base
+  const borderColor = error ? accent.red : focused ? accent.brand : 'transparent'
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? (
-        <Text variant="label" weight="semibold" tone="muted" style={styles.label}>
+        <Text variant="label" weight="semibold" style={styles.label}>
           {label}
         </Text>
       ) : null}
@@ -95,7 +94,7 @@ export function Input({
       </View>
 
       {error ? (
-        <Text variant="caption" style={{ color: accent.redSoft, marginTop: space.xs }}>
+        <Text variant="caption" style={{ color: accent.red, marginTop: space.xs }}>
           {error}
         </Text>
       ) : hint ? (
@@ -109,15 +108,15 @@ export function Input({
 
 const styles = StyleSheet.create({
   container: { gap: 0 },
-  label: { marginBottom: space.sm },
+  label: { marginBottom: space.sm, marginLeft: space.xs },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: surface.sunken,
+    backgroundColor: '#EFEDE7',
     borderRadius: radius.md,
-    borderWidth: 1,
-    paddingHorizontal: space.md,
-    minHeight: 50,
+    borderWidth: 1.5,
+    paddingHorizontal: space.lg,
+    minHeight: 54,
   },
   fieldDisabled: { opacity: 0.55 },
   input: {
@@ -125,6 +124,7 @@ const styles = StyleSheet.create({
     color: ink.base,
     fontSize: 16,
     paddingVertical: space.md,
+    includeFontPadding: false,
   },
   suffix: { paddingLeft: space.sm },
 })

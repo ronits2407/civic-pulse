@@ -7,13 +7,15 @@ import { ConnectedPeers, PeerPrompts } from '@/components/mesh/PeerPrompts'
 import { RelayControl } from '@/components/mesh/RelayControl'
 import { SosSheet } from '@/components/mesh/SosSheet'
 import { StatusNotices } from '@/components/mesh/StatusNotices'
-import { Button } from '@/components/ui/Button'
 import { Notice } from '@/components/ui/Feedback'
 import { Screen } from '@/components/ui/Screen'
+import { TopBar } from '@/components/ui/TopBar'
+import { Rise } from '@/components/ui/Motion'
+import { PressableScale } from '@/components/ui/PressableScale'
 import { Text } from '@/theme/Typography'
 import { Icon } from '@/theme/icons'
 import { useRelaySession } from '@/hooks/useRelaySession'
-import { accent, space } from '@/theme/tokens'
+import { TONE_TINT, accent, ink, radius, space } from '@/theme/tokens'
 
 /**
  * Neighborhood Emergency Network.
@@ -29,51 +31,39 @@ export default function EmergencyNetworkScreen() {
   const on = session.snapshot.phase === 'running'
 
   return (
-    <Screen scroll padded contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Text variant="title" accessibilityRole="header">
-          Neighborhood Emergency Network
-        </Text>
-        <Text variant="caption" tone="muted">
-          Pass hazard alerts between nearby phones when there is no internet. Community reports,
-          not official warnings.
-        </Text>
-      </View>
+    <Screen scroll padded edges={['top', 'bottom']} contentContainerStyle={styles.content}>
+      <TopBar title="Offline alerts" subtitle="Pass hazard alerts between nearby phones when there is no internet. These are community reports, not official warnings." />
 
-      <RelayControl session={session} />
+      <Rise index={0}>
+        <RelayControl session={session} />
+      </Rise>
       <StatusNotices session={session} />
       <PeerPrompts session={session} />
       <ConnectedPeers session={session} />
 
-      <View style={styles.actions}>
-        <Button
-          label="SOS"
-          size="lg"
-          fullWidth
-          icon={<Icon name="alert-octagon-outline" size={22} color="#ffffff" />}
-          onPress={() => setSosOpen(true)}
-          style={styles.sos}
-          accessibilityLabel="Send an SOS to nearby phones"
-        />
-        <Button
-          label="Report a hazard nearby"
-          variant="secondary"
-          size="lg"
-          fullWidth
-          icon={<Icon name="shield-alert-outline" size={20} color={accent.amberSoft} />}
-          onPress={() => setHazardOpen(true)}
-        />
-        {!on ? (
-          <Text variant="caption" style={{ color: accent.amberSoft }}>
-            The relay is off. An alert you create now is saved on this phone only until the relay
-            is on and a nearby phone is connected.
-          </Text>
-        ) : null}
-      </View>
+      <Rise index={1} style={styles.actions}>
+        <PressableScale onPress={() => setSosOpen(true)} haptic="press" accessibilityRole="button" accessibilityLabel="Send an SOS to nearby phones" style={styles.flex}>
+          <View style={[styles.tile, styles.sosTile]}>
+            <Icon name="alert-octagon" size={30} color={ink.inverse} />
+            <Text variant="title" tone="inverse">SOS</Text>
+            <Text variant="caption" tone="inverseMuted">Ask nearby phones for help</Text>
+          </View>
+        </PressableScale>
+        <PressableScale onPress={() => setHazardOpen(true)} haptic="press" accessibilityRole="button" accessibilityLabel="Report a hazard nearby" style={styles.flex}>
+          <View style={[styles.tile, styles.hazardTile]}>
+            <Icon name="shield-alert-outline" size={30} color={accent.amberSoft} />
+            <Text variant="title">Hazard</Text>
+            <Text variant="caption" tone="muted">Warn people near you</Text>
+          </View>
+        </PressableScale>
+      </Rise>
+      {!on ? (
+        <Text variant="caption" style={{ color: accent.amberSoft }}>
+          The relay is off. An alert you create now stays on this phone until the relay is on and a nearby phone connects.
+        </Text>
+      ) : null}
 
-      <Text variant="label" weight="semibold" tone="muted">
-        ALERTS ON THIS PHONE
-      </Text>
+      <Text variant="heading">Alerts on this phone</Text>
       <AlertFeed items={session.feed} />
 
       <Notice
@@ -91,7 +81,9 @@ export default function EmergencyNetworkScreen() {
 
 const styles = StyleSheet.create({
   content: { gap: space.lg, paddingBottom: space.huge },
-  header: { gap: space.xs },
-  actions: { gap: space.md },
-  sos: { backgroundColor: accent.red, borderColor: accent.red },
+  flex: { flex: 1 },
+  actions: { flexDirection: 'row', gap: space.md },
+  tile: { borderRadius: radius.xl, padding: space.lg, gap: space.xs, minHeight: 150, justifyContent: 'flex-end' },
+  sosTile: { backgroundColor: accent.red },
+  hazardTile: { backgroundColor: TONE_TINT.amber },
 })

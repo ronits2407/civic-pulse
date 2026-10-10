@@ -22,15 +22,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '1.0.0',
   orientation: 'portrait',
   scheme: 'civicpulse',
-  userInterfaceStyle: 'dark',
-  backgroundColor: '#0d1117',
+  userInterfaceStyle: 'light',
+  backgroundColor: '#F3F1EC',
   icon: './assets/images/icon.png',
   extra: { apiUrl },
   android: {
     package: 'org.civicpulse.app',
-    backgroundColor: '#0d1117',
+    backgroundColor: '#F3F1EC',
     adaptiveIcon: {
-      backgroundColor: '#0d1117',
+      backgroundColor: '#F3F1EC',
       foregroundImage: './assets/images/android-icon-foreground.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
@@ -48,7 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     [
       'expo-splash-screen',
-      { backgroundColor: '#0d1117', image: './assets/images/splash-icon.png', imageWidth: 96 },
+      { backgroundColor: '#F3F1EC', image: './assets/images/splash-icon.png', imageWidth: 96 },
     ],
     'expo-sharing',
     'expo-secure-store',

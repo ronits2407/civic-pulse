@@ -5,9 +5,11 @@ import { useRouter } from 'expo-router'
 import { ReviewCard } from '@/features/community-review/ReviewCard'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { EmptyState, ErrorState, Notice, Skeleton } from '@/components/ui/Feedback'
+import { EmptyState, ErrorState, Skeleton } from '@/components/ui/Feedback'
 import { Screen } from '@/components/ui/Screen'
 import { Text } from '@/theme/Typography'
+import { TopBar } from '@/components/ui/TopBar'
+import { Rise } from '@/components/ui/Motion'
 import { Icon } from '@/theme/icons'
 import { useToast } from '@/components/feedback/ToastHost'
 import { useAuth } from '@/lib/auth/AuthProvider'
@@ -60,7 +62,7 @@ export default function ReviewScreen() {
     <Screen
       scroll
       padded
-      edges={['top']}
+      edges={['top', 'bottom']}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl
@@ -71,19 +73,17 @@ export default function ReviewScreen() {
         />
       }
     >
-      <View style={styles.header}>
-        <Text variant="title">Verify reports</Text>
-        <Text variant="caption" tone="faint">
-          When an AI credibility check scores a report below 6/10, neighbours confirm
-          whether it is real before a department acts on it.
-        </Text>
-      </View>
-
-      <Notice
-        tone="blue"
-        body="You are shown reports within about 1 km of your saved home location. Votes are weighted equally and three settle a report."
-        icon={<Icon name="information-outline" size={15} color={accent.blue} />}
+      <TopBar
+        title="Verify reports"
+        subtitle="When the credibility check scores a report below 6/10, neighbours confirm it is real before a department acts."
       />
+
+      <Card variant="mist" style={styles.how}>
+        <Icon name="account-group-outline" size={22} color={accent.brand} />
+        <Text variant="caption" tone="muted" style={styles.flex}>
+          You see reports within about 1 km of your home area. Three votes settle a report, and each vote earns you 2 karma.
+        </Text>
+      </Card>
 
       {noHomeLocation ? (
         <Card>
@@ -93,6 +93,7 @@ export default function ReviewScreen() {
             body="Verification is deliberately local — you only see reports you could plausibly walk past. Save a home location and nearby reports will appear here."
             actionLabel="Set home location"
             onAction={() => router.push('/(citizen)/profile')}
+            
           />
         </Card>
       ) : queue.loading && (!queue.data || queue.data.length === 0) ? (
@@ -123,14 +124,15 @@ export default function ReviewScreen() {
           />
         </Card>
       ) : (
-        queue.items.map((item) => (
-          <ReviewCard
-            key={item.id}
-            item={item}
-            submitting={queue.submittingId === item.id}
-            locked={queue.localVotes[item.id]}
-            onSubmit={(verdict, comment) => handleVote(item.id, verdict, comment)}
-          />
+        queue.items.map((item, i) => (
+          <Rise key={item.id} index={i}>
+            <ReviewCard
+              item={item}
+              submitting={queue.submittingId === item.id}
+              locked={queue.localVotes[item.id]}
+              onSubmit={(verdict, comment) => handleVote(item.id, verdict, comment)}
+            />
+          </Rise>
         ))
       )}
 
@@ -163,7 +165,8 @@ export default function ReviewScreen() {
 
 const styles = StyleSheet.create({
   content: { gap: space.lg, paddingBottom: space.huge },
-  header: { gap: space.xs },
+  how: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  flex: { flex: 1 },
   skeletons: { gap: space.lg },
   sessionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, marginBottom: space.sm },
 })

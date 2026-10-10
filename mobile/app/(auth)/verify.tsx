@@ -4,13 +4,15 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import { Button } from '@/components/ui/Button'
 import { Notice } from '@/components/ui/Feedback'
-import { Input } from '@/components/ui/Input'
+import { CodeBoxes } from '@/components/auth/CodeBoxes'
+import { Rise } from '@/components/ui/Motion'
+import { TopBar } from '@/components/ui/TopBar'
 import { Screen } from '@/components/ui/Screen'
 import { useToast } from '@/components/feedback/ToastHost'
 import { Text } from '@/theme/Typography'
 import { Icon } from '@/theme/icons'
 import { useAuth } from '@/lib/auth/AuthProvider'
-import { accent, space } from '@/theme/tokens'
+import { accent, ink, radius, space, surface } from '@/theme/tokens'
 
 const CODE_LENGTH = 6
 const RESEND_COOLDOWN_S = 30
@@ -100,90 +102,72 @@ export default function VerifyScreen() {
   }, [resending, cooldown, sendEmailCode, email, toast])
 
   return (
-    <Screen padded scroll avoidKeyboard contentContainerStyle={styles.content}>
-      <View style={styles.header}>
+    <Screen padded scroll avoidKeyboard edges={['top', 'bottom']} contentContainerStyle={styles.content}>
+      <TopBar onBack={() => router.replace('/(auth)/login')} />
+
+      <Rise index={0} style={styles.header}>
         <View style={styles.iconWell}>
-          <Icon name="email-fast-outline" size={22} color={accent.brand} />
+          <Icon name="email-fast-outline" size={28} color={ink.inverse} />
         </View>
-        <Text variant="title">Check your email</Text>
-        <Text variant="bodyTight" tone="muted" style={styles.sub}>
-          We sent a {CODE_LENGTH}-digit code to
+        <Text variant="display">Check your email</Text>
+        <Text variant="body" tone="muted">
+          We sent a {CODE_LENGTH}-digit code to{' '}
+          <Text variant="body" weight="semibold">
+            {email || 'your email address'}
+          </Text>
         </Text>
-        <Text variant="bodyTight" weight="semibold" style={styles.email}>
-          {email || 'your email address'}
-        </Text>
-      </View>
+      </Rise>
 
-      <Input
-        label="Sign-in code"
-        value={code}
-        onChangeText={handleChange}
-        keyboardType="number-pad"
-        maxLength={CODE_LENGTH}
-        autoFocus
-        mono
-        editable={!verifying}
-        error={error}
-        placeholder="000000"
-        textContentType="oneTimeCode"
-        autoComplete="sms-otp"
-        style={styles.codeInput}
-      />
-
-      <Button
-        label="Verify and continue"
-        onPress={() => handleVerify(code)}
-        loading={verifying}
-        disabled={code.length !== CODE_LENGTH}
-        fullWidth
-        size="lg"
-      />
-
-      <View style={styles.actions}>
+      <Rise index={1} style={styles.form}>
+        <CodeBoxes value={code} onChange={handleChange} length={CODE_LENGTH} error={Boolean(error)} editable={!verifying} />
+        {error ? (
+          <Text variant="caption" style={{ color: accent.red }}>
+            {error}
+          </Text>
+        ) : null}
         <Button
-          label={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
-          onPress={handleResend}
-          variant="ghost"
-          size="sm"
-          loading={resending}
-          disabled={cooldown > 0 || resending}
+          label="Verify and continue"
+          onPress={() => handleVerify(code)}
+          loading={verifying}
+          disabled={code.length !== CODE_LENGTH}
+          fullWidth
+          size="lg"
+          trailingArrow
         />
-        <Button
-          label="Use a different email"
-          onPress={() => router.replace('/(auth)/login')}
-          variant="ghost"
-          size="sm"
-        />
-      </View>
+        <View style={styles.actions}>
+          <Button
+            label={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
+            onPress={handleResend}
+            variant="ghost"
+            size="sm"
+            loading={resending}
+            disabled={cooldown > 0 || resending}
+          />
+          <Button label="Use a different email" onPress={() => router.replace('/(auth)/login')} variant="ghost" size="sm" />
+        </View>
+      </Rise>
 
       <Notice
         tone="blue"
-        body="You can also tap the link in the email — it opens CivicPulse and signs you in automatically."
-        icon={<Icon name="link-variant" size={15} color={accent.blue} />}
+        body="You can also tap the link in the email. It opens CivicPulse and signs you in."
+        icon={<Icon name="link-variant" size={16} color={accent.blue} />}
       />
     </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  content: { flexGrow: 1, justifyContent: 'center', gap: space.xl },
-  header: { alignItems: 'center', gap: space.xs },
+  content: { flexGrow: 1, gap: space.xxl },
+  header: { gap: space.sm, marginTop: space.lg },
   iconWell: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 60,
+    height: 60,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(45,164,78,0.12)',
+    backgroundColor: ink.base,
     marginBottom: space.sm,
   },
-  sub: { marginTop: space.xs },
-  email: { marginTop: 2 },
-  codeInput: {
-    fontSize: 24,
-    letterSpacing: 10,
-    textAlign: 'center',
-    paddingVertical: space.md,
-  },
-  actions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: space.sm },
+  form: { gap: space.lg, backgroundColor: surface.card, borderRadius: radius.xl, padding: space.xl },
+  actions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' },
 })

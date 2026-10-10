@@ -5,7 +5,7 @@ import { Image } from 'expo-image'
 import { PressableScale } from '@/components/ui/PressableScale'
 import { Text } from '@/theme/Typography'
 import { Icon } from '@/theme/icons'
-import { accent, line, radius, space, surface } from '@/theme/tokens'
+import { accent, radius, space, surface } from '@/theme/tokens'
 
 /**
  * Attached-evidence thumbnail with a remove control.
@@ -72,13 +72,11 @@ export function MediaThumb({
 const styles = StyleSheet.create({
   wrap: { gap: space.xs },
   frame: {
-    width: 104,
-    height: 104,
-    borderRadius: radius.md,
+    width: 96,
+    height: 96,
+    borderRadius: radius.lg,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-    backgroundColor: surface.sunken,
+    backgroundColor: surface.mist,
   },
   image: { width: '100%', height: '100%' },
   videoFrame: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4, padding: space.sm },
@@ -91,18 +89,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(13,17,23,0.72)',
+    backgroundColor: 'rgba(255,255,255,0.72)',
   },
   remove: { position: 'absolute', top: 4, right: 4 },
   removeInner: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(13,17,23,0.86)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(248,113,113,0.5)',
+    backgroundColor: 'rgba(20,28,46,0.82)',
   },
-  caption: { width: 104 },
+  caption: { width: 96, textAlign: 'center' },
 })

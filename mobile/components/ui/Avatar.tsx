@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native'
 import { Image } from 'expo-image'
 
 import { Text } from '@/theme/Typography'
-import { accent, ink, line, radius } from '@/theme/tokens'
+import { ink, radius, surface } from '@/theme/tokens'
 
 /**
  * Profile avatar.
@@ -64,10 +64,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-    backgroundColor: '#10161d',
+    backgroundColor: surface.raised,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  initialsBg: { backgroundColor: 'rgba(45,164,78,0.14)', borderColor: 'rgba(45,164,78,0.4)' },
+  initialsBg: { backgroundColor: surface.mist },
   initialsText: { color: ink.base },
 })

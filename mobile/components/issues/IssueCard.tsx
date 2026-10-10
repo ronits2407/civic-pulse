@@ -1,37 +1,32 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
+import { Image } from 'expo-image'
 
-import { SeverityMeter } from '@/components/issues/SeverityMeter'
-import { Chip, CategoryChip, StatusPill } from '@/components/ui/Chip'
+import { Chip, StatusPill } from '@/components/ui/Chip'
 import { Card } from '@/components/ui/Card'
 import { PressableScale } from '@/components/ui/PressableScale'
-import { PipelineRail } from '@/components/pipeline/PipelineRail'
+import { Rail } from '@/components/pipeline/Rail'
 import { Text } from '@/theme/Typography'
 import { CATEGORY_ICON, FALLBACK_CATEGORY_ICON, Icon } from '@/theme/icons'
-
-
-import { slaMeta, timeAgo } from '@/lib/format'
+import { severityMeta, slaMeta, timeAgo } from '@/lib/format'
 import { deriveProgress } from '@/lib/pipeline'
-import { CATEGORY_META, FALLBACK_CATEGORY, ink, space, TONE_COLOR, TONE_TINT, type Tone } from '@/theme/tokens'
+import { CATEGORY_META, FALLBACK_CATEGORY, radius, space, TONE_COLOR, TONE_TINT, type Tone } from '@/theme/tokens'
 import type { DecodedIssue } from '@/lib/api/issues-repo'
 
 /**
  * A citizen's report, summarised.
  *
- * Reading order is deliberate: what and where (title, place), how bad (severity),
- * how far along (pipeline rail), and when (timestamp). The pipeline rail is the last
- * visual band before the edge of the card so it acts as the card's footer — the same
- * position on every card, so scanning a list feels like reading an instrument panel.
+ * Photo (or category tile) on the left, so a list scans by picture first. Then what and
+ * where, a status pill and SLA, and the agent rail as a footer in the same place on
+ * every card, so a list reads like an instrument panel.
  */
-
 export function IssueCard({
   issue,
   onPress,
-  index = 0,
 }: {
   issue: DecodedIssue
   onPress: (issue: DecodedIssue) => void
-  /** Position in the list — revealed with a small stagger on mount. */
+  /** Kept for call-site compatibility; entrance animation is applied by the list. */
   index?: number
 }) {
   const categoryMeta = (issue.category && CATEGORY_META[issue.category]) || FALLBACK_CATEGORY
@@ -39,7 +34,7 @@ export function IssueCard({
   const isDuplicate = Boolean(issue.cluster_id)
   const progress = deriveProgress(issue.pipeline_stage)
   const sla = slaMeta(issue.sla_deadline, issue.status)
-
+  const severity = severityMeta(issue.severity, issue.is_emergency)
   const title = issue.title?.trim() || 'Untitled report'
 
   return (
@@ -49,61 +44,45 @@ export function IssueCard({
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${categoryMeta.label}. ${progress.label}.`}
     >
-      <Card accentColor={categoryMeta.color} style={styles.card}>
-        {/* Category + status */}
-        <View style={styles.topRow}>
-          <View style={styles.topLeft}>
-            <Icon name={categoryIcon} size={13} color={categoryMeta.color} />
-            <CategoryChip category={issue.category} dense />
+      <Card style={styles.card}>
+        <View style={styles.top}>
+          {issue.photo_url ? (
+            <Image source={{ uri: issue.photo_url }} style={styles.thumb} contentFit="cover" transition={200} alt={`Photo of ${title}`} />
+          ) : (
+            <View style={[styles.thumb, styles.thumbIcon, { backgroundColor: categoryMeta.tint }]}>
+              <Icon name={categoryIcon} size={26} color={categoryMeta.color} />
+            </View>
+          )}
+          <View style={styles.text}>
+            <Text variant="caption" weight="semibold" style={{ color: categoryMeta.color }} numberOfLines={1}>
+              {categoryMeta.label}
+              {issue.severity ? `  ·  ${severity.label}` : ''}
+            </Text>
+            <Text variant="heading" numberOfLines={2}>
+              {title}
+            </Text>
+            <Text variant="caption" tone="faint" numberOfLines={1}>
+              {issue.address?.trim() || 'Location recorded'}  ·  {timeAgo(issue.created_at)}
+            </Text>
           </View>
+        </View>
+
+        <View style={styles.pills}>
           <StatusPill status={issue.status} dense />
-        </View>
-
-        {/* Title */}
-        <Text variant="heading" weight="semibold" numberOfLines={2} style={styles.title}>
-          {title}
-        </Text>
-
-        {/* Location */}
-        <View style={styles.locationRow}>
-          <Icon name="map-marker-outline" size={13} color={ink.faint} />
-          <Text variant="caption" tone="muted" numberOfLines={1} style={styles.locationText}>
-            {issue.address?.trim() || 'Location recorded'}
-          </Text>
-        </View>
-
-        {/* Severity + SLA */}
-        <View style={styles.metricsRow}>
-          <View style={styles.severityCol}>
-            <SeverityMeter severity={issue.severity} isEmergency={issue.is_emergency} />
-          </View>
           <Chip
             label={sla.label}
             color={TONE_COLOR[sla.tone as Tone]}
             tint={TONE_TINT[sla.tone as Tone]}
             dense
-            icon={<Icon name="clock-outline" size={11} color={TONE_COLOR[sla.tone as Tone]} />}
+            icon={<Icon name="clock-outline" size={12} color={TONE_COLOR[sla.tone as Tone]} />}
           />
+          {issue.is_emergency ? <Chip label="Emergency" color={TONE_COLOR.red} tint={TONE_TINT.red} dense /> : null}
         </View>
 
-        {/* Signature rail + timestamp */}
-        <View style={styles.footer}>
-          <PipelineRail
-            stage={issue.pipeline_stage}
-            isDuplicate={isDuplicate}
-            showLabels
-            style={styles.rail}
-          />
-        </View>
-
-        <View style={styles.metaRow}>
-          <Text variant="micro" tone="faint" numberOfLines={1} style={styles.progressText}>
-            {progress.label}
-          </Text>
-          <Text variant="micro" tone="faint" numberOfLines={1}>
-            {timeAgo(issue.created_at)}
-          </Text>
-        </View>
+        <Rail stage={issue.pipeline_stage} isDuplicate={isDuplicate} style={styles.rail} />
+        <Text variant="caption" tone="muted" numberOfLines={1}>
+          {progress.label}
+        </Text>
       </Card>
     </PressableScale>
   )
@@ -111,15 +90,10 @@ export function IssueCard({
 
 const styles = StyleSheet.create({
   card: { gap: space.md },
-  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
-  topLeft: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flexShrink: 1 },
-  title: { marginTop: -2 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: -4 },
-  locationText: { flex: 1 },
-  metricsRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: space.md },
-  severityCol: { flex: 1, maxWidth: '58%' },
-  footer: { marginTop: space.xs },
-  rail: { paddingHorizontal: 2 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginTop: -space.xs },
-  progressText: { flexShrink: 1 },
+  top: { flexDirection: 'row', gap: space.md },
+  thumb: { width: 76, height: 76, borderRadius: radius.md },
+  thumbIcon: { alignItems: 'center', justifyContent: 'center' },
+  text: { flex: 1, gap: 2, justifyContent: 'center' },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  rail: { marginTop: space.xs },
 })

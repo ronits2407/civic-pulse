@@ -1,47 +1,50 @@
 import React from 'react'
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 
-import { line, radius, space, surface } from '@/theme/tokens'
+import { radius, shadow, space, surface } from '@/theme/tokens'
 
 /**
  * The workhorse surface.
  *
- * Borders are the primary structural device in this interface — they read as
- * precise and instrument-like on a dark canvas, where shadows mostly disappear.
- * A very low-opacity shadow is layered on top for elevation cues on lighter screens.
+ * On paper, depth reads from soft shadow rather than borders, so cards are white with a
+ * diffuse lift and no outline. `mist` and `hero` are the two coloured surfaces; nothing
+ * else in the app introduces a new background colour.
  */
 
 export interface CardProps {
   children: React.ReactNode
-  /** `default` is the raised card; `sunken` is a well inside another card. */
-  variant?: 'default' | 'sunken' | 'bare'
-  /** Draw a coloured left edge — used for severity / category accent on incident cards. */
+  /**
+   * `default` white raised card · `sunken` well inside another card · `mist` soft
+   * periwinkle panel · `hero` deep navy · `bare` no surface.
+   */
+  variant?: 'default' | 'sunken' | 'bare' | 'mist' | 'hero'
+  /** Coloured left edge, used for severity / category accent. */
   accentColor?: string
   padded?: boolean
   style?: StyleProp<ViewStyle>
   onLayout?: View['props']['onLayout']
 }
 
-export function Card({
-  children,
-  variant = 'default',
-  accentColor,
-  padded = true,
-  style,
-  onLayout,
-}: CardProps) {
-  const background =
-    variant === 'sunken' ? surface.sunken : variant === 'bare' ? 'transparent' : surface.card
+const BACKGROUND: Record<NonNullable<CardProps['variant']>, string> = {
+  default: surface.card,
+  sunken: surface.sunken,
+  bare: 'transparent',
+  mist: surface.mist,
+  hero: surface.hero,
+}
 
+export function Card({ children, variant = 'default', accentColor, padded = true, style, onLayout }: CardProps) {
+  const lifted = variant === 'default' || variant === 'hero'
   return (
     <View
       onLayout={onLayout}
       style={[
         styles.base,
-        { backgroundColor: background },
-        variant === 'bare' && styles.bare,
+        { backgroundColor: BACKGROUND[variant] },
+        lifted && shadow.card,
+        variant === 'sunken' && styles.sunken,
         padded && styles.padded,
-        accentColor ? { borderLeftColor: accentColor, borderLeftWidth: 3 } : null,
+        accentColor ? { borderLeftColor: accentColor, borderLeftWidth: 4 } : null,
         style,
       ]}
     >
@@ -50,23 +53,15 @@ export function Card({
   )
 }
 
-/** Thin divider that matches the card hairline. */
-export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
-  return <View style={[styles.divider, style]} />
+/** Thin divider for use inside a card. */
+export function Divider({ style, inverse = false }: { style?: StyleProp<ViewStyle>; inverse?: boolean }) {
+  return <View style={[styles.divider, inverse && styles.dividerInverse, style]} />
 }
 
 const styles = StyleSheet.create({
-  base: {
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
-    shadowColor: '#000',
-    shadowOpacity: 0.28,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  bare: { borderWidth: 0, shadowOpacity: 0, elevation: 0 },
+  base: { borderRadius: radius.lg },
+  sunken: { borderRadius: radius.md },
   padded: { padding: space.lg },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: line.soft, width: '100%' },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#E7E4DD', width: '100%' },
+  dividerInverse: { backgroundColor: 'rgba(255,255,255,0.12)' },
 })

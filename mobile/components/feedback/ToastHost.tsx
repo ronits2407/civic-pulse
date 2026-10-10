@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Icon, type IconName } from '@/theme/icons'
 import { Text } from '@/theme/Typography'
 import { haptics } from '@/lib/haptics'
-import { accent, line, radius, space, surface, TONE_COLOR, TONE_TINT, type Tone } from '@/theme/tokens'
+import { radius, space, surface, TONE_COLOR, TONE_TINT, type Tone } from '@/theme/tokens'
 
 /**
  * Toast notifications.
@@ -58,7 +58,7 @@ function ToastCard({ toast, onDone }: { toast: ToastState; onDone: () => void })
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    progress.value = withTiming(1, { duration: 220, reduceMotion: ReduceMotion.System })
+    progress.set(withTiming(1, { duration: 220, reduceMotion: ReduceMotion.System }))
     timer.current = setTimeout(onDone, toast.durationMs)
     return () => {
       if (timer.current) clearTimeout(timer.current)
@@ -153,13 +153,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: space.md,
     padding: space.md,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    backgroundColor: surface.raised,
-    borderColor: line.base,
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
+    borderRadius: radius.lg,
+    backgroundColor: surface.card,
+    shadowColor: '#0E1526',
+    shadowOpacity: 0.16,
+    shadowRadius: 20,
     shadowOffset: { width: 0, height: 6 },
     elevation: 8,
   },

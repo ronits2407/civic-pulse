@@ -1,25 +1,29 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ActivityIndicator, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
+import Animated, {
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated'
 
 import { Button } from '@/components/ui/Button'
 import { PressableScale } from '@/components/ui/PressableScale'
 import { Text } from '@/theme/Typography'
-import { accent, line, radius, space, surface, TONE_TINT, type Tone } from '@/theme/tokens'
-import { TONE_COLOR } from '@/theme/tokens'
+import { accent, radius, space, surface, TONE_COLOR, TONE_TINT, type Tone } from '@/theme/tokens'
 
 /**
  * Loading, empty and error states.
  *
- * These are treated as first-class screens rather than afterthoughts: an empty home
- * screen is the first thing a new citizen sees, and a failed upload is the moment
- * they are most likely to give up. Each one says what happened and what to do next.
+ * Each one says what happened and what to do next. Empty states are invitations to act;
+ * errors explain the cause and offer the fix, without apologising.
  */
 
 export function Spinner({ color = accent.brand }: { color?: string }) {
   return <ActivityIndicator size="small" color={color} />
 }
 
-/** Inline loading row for refreshes that should not blank the screen. */
 export function LoadingRow({ label = 'Loading' }: { label?: string }) {
   return (
     <View style={styles.loadingRow}>
@@ -31,7 +35,6 @@ export function LoadingRow({ label = 'Loading' }: { label?: string }) {
   )
 }
 
-/** Full-area loading state for first paint. */
 export function LoadingState({ label = 'Loading', style }: { label?: string; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.centered, style]}>
@@ -43,13 +46,14 @@ export function LoadingState({ label = 'Loading', style }: { label?: string; sty
   )
 }
 
-/**
- * Skeleton block for list placeholders.
- * Deliberately static: a shimmer would run continuously on a screen the user is
- * about to leave, which is exactly the kind of decoration we avoid.
- */
+/** Placeholder block that breathes slowly while content loads. Static if motion is reduced. */
 export function Skeleton({ height = 92, style }: { height?: number; style?: StyleProp<ViewStyle> }) {
-  return <View style={[styles.skeleton, { height }, style]} />
+  const pulse = useSharedValue(0)
+  useEffect(() => {
+    pulse.set(withRepeat(withTiming(1, { duration: 900, reduceMotion: ReduceMotion.System }), -1, true))
+  }, [pulse])
+  const animated = useAnimatedStyle(() => ({ opacity: 0.55 + pulse.value * 0.45 }))
+  return <Animated.View style={[styles.skeleton, { height }, animated, style]} />
 }
 
 export function EmptyState({
@@ -70,7 +74,7 @@ export function EmptyState({
   return (
     <View style={[styles.stateBox, style]}>
       {icon ? <View style={styles.iconWell}>{icon}</View> : null}
-      <Text variant="heading" weight="semibold" center>
+      <Text variant="heading" center>
         {title}
       </Text>
       {body ? (
@@ -78,9 +82,7 @@ export function EmptyState({
           {body}
         </Text>
       ) : null}
-      {actionLabel && onAction ? (
-        <Button label={actionLabel} onPress={onAction} size="sm" style={{ marginTop: space.lg }} />
-      ) : null}
+      {actionLabel && onAction ? <Button label={actionLabel} onPress={onAction} size="sm" style={{ marginTop: space.lg }} /> : null}
     </View>
   )
 }
@@ -100,7 +102,7 @@ export function ErrorState({
 }) {
   return (
     <View style={[styles.stateBox, style]}>
-      <Text variant="heading" weight="semibold" center style={{ color: accent.redSoft }}>
+      <Text variant="heading" center style={{ color: accent.red }}>
         {title}
       </Text>
       {message ? (
@@ -108,17 +110,12 @@ export function ErrorState({
           {message}
         </Text>
       ) : null}
-      {onRetry ? (
-        <Button label={retryLabel} onPress={onRetry} size="sm" variant="secondary" style={{ marginTop: space.lg }} />
-      ) : null}
+      {onRetry ? <Button label={retryLabel} onPress={onRetry} size="sm" variant="secondary" style={{ marginTop: space.lg }} /> : null}
     </View>
   )
 }
 
-/**
- * Inline notice — used for permission explanations, offline warnings and
- * "saved on device" states. Tone maps to the same semantic colours as chips.
- */
+/** Inline notice for permission explanations, offline warnings and "saved on device" states. */
 export function Notice({
   tone = 'blue',
   title,
@@ -137,7 +134,7 @@ export function Notice({
   style?: StyleProp<ViewStyle>
 }) {
   return (
-    <View style={[styles.notice, { backgroundColor: TONE_TINT[tone], borderColor: TONE_COLOR[tone] + '3d' }, style]}>
+    <View style={[styles.notice, { backgroundColor: TONE_TINT[tone] }, style]}>
       <View style={styles.noticeRow}>
         {icon ? <View style={styles.noticeIcon}>{icon}</View> : null}
         <View style={styles.noticeText}>
@@ -146,14 +143,14 @@ export function Notice({
               {title}
             </Text>
           ) : null}
-          <Text variant="caption" tone="muted" style={{ lineHeight: 18 }}>
+          <Text variant="caption" tone="muted" style={{ lineHeight: 19 }}>
             {body}
           </Text>
         </View>
       </View>
       {actionLabel && onAction ? (
         <PressableScale onPress={onAction} haptic="tap" accessibilityRole="button" style={styles.noticeAction}>
-          <Text variant="caption" weight="semibold" style={{ color: TONE_COLOR[tone] }}>
+          <Text variant="caption" weight="bold" style={{ color: TONE_COLOR[tone] }}>
             {actionLabel}
           </Text>
         </PressableScale>
@@ -165,40 +162,21 @@ export function Notice({
 const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xxl },
   loadingRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg },
-  skeleton: {
-    borderRadius: radius.lg,
-    backgroundColor: surface.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.soft,
-    width: '100%',
-  },
-  stateBox: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: space.huge,
-    paddingHorizontal: space.xl,
-    gap: space.xs,
-  },
+  skeleton: { borderRadius: radius.lg, backgroundColor: '#E6E3DB', width: '100%' },
+  stateBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: space.huge, paddingHorizontal: space.xl, gap: space.xs },
   iconWell: {
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 64,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: surface.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: line.base,
+    backgroundColor: surface.mist,
     marginBottom: space.md,
   },
   stateBody: { maxWidth: 320, marginTop: space.xs },
-  notice: {
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: space.md,
-    gap: space.sm,
-  },
+  notice: { borderRadius: radius.md, padding: space.lg, gap: space.sm },
   noticeRow: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },
-  noticeIcon: { paddingTop: 1 },
+  noticeIcon: { paddingTop: 2 },
   noticeText: { flex: 1, gap: 2 },
-  noticeAction: { alignSelf: 'flex-start', paddingVertical: 2 },
+  noticeAction: { alignSelf: 'flex-start', paddingVertical: 2, paddingLeft: 28 },
 })
