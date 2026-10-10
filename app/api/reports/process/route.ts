@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Prefer the verified session identity (the native client sends a bearer token).
-    // Falls back to the legacy client-supplied id only when no credential was sent.
+    // Client-supplied ids cannot substitute for a verified session.
     const identity = await resolveActingUser(req, userId)
     if (!identity.userId) {
       return NextResponse.json(
@@ -115,9 +115,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Run asynchronously in the background using Next.js after()
-    after(() => {
+    after(async () => {
       const config = { configurable: { thread_id: issue.id } };
-      pipeline.invoke(initialState as unknown as Parameters<typeof pipeline.invoke>[0], config).catch(async (err) => {
+      await pipeline.invoke(initialState as unknown as Parameters<typeof pipeline.invoke>[0], config).catch(async (err) => {
         console.error('Pipeline Background Error:', err)
         await supabase.from('issues').update({ pipeline_stage: 'failed' }).eq('id', issue.id)
       })

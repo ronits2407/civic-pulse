@@ -4,7 +4,10 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  const requestedNext = searchParams.get('next') ?? '/dashboard'
+  const next = requestedNext.startsWith('/') && !requestedNext.startsWith('//') && !requestedNext.includes('\\')
+    ? requestedNext
+    : '/dashboard'
   const role = searchParams.get('role')
   
   // Use NEXT_PUBLIC_APP_URL to construct absolute redirect URLs correctly, 
@@ -16,9 +19,11 @@ export async function GET(request: Request) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       if (role === 'admin' && data?.user) {
-        // Update user profile to admin
-        await supabase.from('profiles').update({ role: 'admin' }).eq('id', data.user.id)
-        return NextResponse.redirect(`${baseUrl}/admin/dashboard`)
+        // A login parameter must never grant privileges. Only existing admins may enter.
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
+        if (profile?.role === 'admin') {
+          return NextResponse.redirect(`${baseUrl}/admin/dashboard`)
+        }
       }
       return NextResponse.redirect(`${baseUrl}${next}`)
     }

@@ -19,10 +19,8 @@ import { createServerSupabaseClient } from '@/lib/db/server'
  *   1. Bearer token  — validated with Supabase. A malformed or expired token is a hard
  *                      401: the caller presented a credential and it was not accepted.
  *   2. Cookie session — preserves the existing web app behaviour unchanged.
- *   3. No credential at all — the caller supplied nothing. The route may fall back to
- *                      its legacy client-supplied id so the current web client keeps
- *                      working, but the caller is flagged as `unverified` so callers can
- *                      log it. This is a transitional state, not a security boundary.
+ *   3. No credential at all — reject the request. A client-supplied id is never proof
+ *                      of identity, including for legacy web clients.
  */
 
 /**
@@ -90,9 +88,8 @@ export async function resolveApiIdentity(request: Request): Promise<ResolvedIden
 /**
  * Resolve the acting user id for a route.
  *
- * `legacyUserId` is the value the client used to send. It is returned only when no
- * credential was presented at all, so existing web callers keep working. A credential
- * that was presented and rejected always wins, and always fails.
+ * `legacyUserId` is retained for compatibility and mismatch logging only.
+ * Every caller must present a verified bearer token or cookie session.
  */
 export async function resolveActingUser(
   request: Request,
@@ -118,11 +115,6 @@ export async function resolveActingUser(
       error: 'Your session could not be verified. Sign in again.',
       status: 401,
     }
-  }
-
-  if (legacyUserId) {
-    console.warn('[api-auth] No credential presented; accepting client-supplied userId. This is a legacy path.')
-    return { userId: legacyUserId, identity: { ...identity, source: 'unverified' } }
   }
 
   return { userId: null, identity, error: 'Authentication required.', status: 401 }
