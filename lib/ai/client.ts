@@ -20,15 +20,75 @@ import { GoogleGenAI } from '@google/genai'
 import OpenAI from 'openai'
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { ChatOpenAI } from '@langchain/openai'
+import { Llms } from '@cline/sdk'
 
 // ─── Provider detection ──────────────────────────────────────────────────────
 
-export type AIProvider = 'gemini' | 'ollama'
+export type AIProvider = 'gemini' | 'ollama' | 'cline'
 
 function getProvider(): AIProvider {
   const raw = process.env.AI_PROVIDER?.toLowerCase()
   if (raw === 'ollama') return 'ollama'
+  if (raw === 'cline') return 'cline'
   return 'gemini' // safe default
+}
+
+export function isClineSdkActive(): boolean {
+  if (process.env.USE_CLINE_SDK === 'false') return false
+  return true // enabled by default for hackathon integration
+}
+
+export function getGeminiFlashModel(): string {
+  return process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash'
+}
+
+export function getGeminiProModel(): string {
+  return process.env.GEMINI_PRO_MODEL || 'gemini-2.5-pro'
+}
+
+// ─── Cline SDK Gemini setup (@cline/sdk) ─────────────────────────────────────
+
+let _clineFlashHandler: Llms.ApiHandler | null = null
+let _clineProHandler: Llms.ApiHandler | null = null
+
+export function getClineGeminiHandler(usePro = false): Llms.ApiHandler {
+  const modelId = usePro ? getGeminiProModel() : getGeminiFlashModel()
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set')
+
+  if (usePro) {
+    if (!_clineProHandler) {
+      _clineProHandler = Llms.createHandler({
+        providerId: 'gemini',
+        apiKey: process.env.GEMINI_API_KEY,
+        modelId,
+      })
+    }
+    return _clineProHandler
+  } else {
+    if (!_clineFlashHandler) {
+      _clineFlashHandler = Llms.createHandler({
+        providerId: 'gemini',
+        apiKey: process.env.GEMINI_API_KEY,
+        modelId,
+      })
+    }
+    return _clineFlashHandler
+  }
+}
+
+async function consumeClineStream(stream: ReturnType<Llms.ApiHandler['createMessage']>): Promise<string> {
+  let text = ''
+  for await (const chunk of stream) {
+    if (chunk.type === 'text') {
+      text += chunk.text
+    } else if (chunk.type === 'done' && !chunk.success && chunk.error) {
+      throw new Error(`[Cline SDK Error] ${chunk.error}`)
+    }
+  }
+  if (!text.trim()) {
+    throw new Error('[Cline SDK Error] Stream finished without textual output')
+  }
+  return text.trim()
 }
 
 // ─── Gemini setup (@google/genai) ────────────────────────────────────────────
@@ -90,11 +150,23 @@ function getOllamaProModel(): string {
 
 // ─── Rate Limit & Retry Helper ───────────────────────────────────────────────
 
+const AI_CALL_TIMEOUT_MS = Number(process.env.AI_CALL_TIMEOUT_MS) || 45000
+/** Quota waits longer than this are not worth blocking a request on; fail fast instead. */
+const MAX_RETRY_WAIT_MS = 60000
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s (model unresponsive or quota exhausted)`)), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
 async function callWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let attempt = 0
   while (true) {
     try {
-      return await fn()
+      return await withTimeout(fn(), AI_CALL_TIMEOUT_MS, 'AI call')
     } catch (err: any) {
       attempt++
       const errMsg = err?.message || String(err)
@@ -103,13 +175,17 @@ async function callWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T
         err?.code === 429 ||
         errMsg.includes('429') ||
         errMsg.includes('RESOURCE_EXHAUSTED') ||
-        errMsg.includes('Quota exceeded')
+        errMsg.includes('Quota exceeded') ||
+        errMsg.includes('exceeded your current quota')
 
       if (isRateLimit && attempt <= maxRetries) {
         let waitMs = 15000 * attempt
-        const match = errMsg.match(/retry in ([0-9.]+)s/i) || errMsg.match(/"retryDelay":"([0-9.]+)s"/i)
+        const match = errMsg.match(/retry in ([0-9.]+)s/i) || errMsg.match(/"retryDelay":\s*"([0-9.]+)s"/i)
         if (match && match[1]) {
           waitMs = Math.ceil(parseFloat(match[1]) * 1000) + 1500
+        }
+        if (waitMs > MAX_RETRY_WAIT_MS) {
+          throw new Error(`Gemini quota exhausted (retry suggested in ${Math.round(waitMs / 1000)}s). Use another API key, enable billing, or set AI_PROVIDER=ollama.`)
         }
         console.warn(`[AI Client] Gemini Free Tier rate limit (429) hit. Pausing ${(waitMs / 1000).toFixed(1)}s before retry (attempt ${attempt}/${maxRetries})...`)
         await new Promise((resolve) => setTimeout(resolve, waitMs))
@@ -156,9 +232,27 @@ export async function generateStructuredJSON<T>(
     }
   }
 
-  // Default: Gemini (using @google/genai SDK) - strictly Flash everywhere
+  // Cline SDK integration: execute structured JSON via Cline SDK Gemini handler
+  if (isClineSdkActive()) {
+    try {
+      const handler = getClineGeminiHandler(usePro)
+      const text = await callWithRetry(async () => {
+        const stream = handler.createMessage(
+          systemInstruction + '\nAlways respond with valid JSON only. Do not wrap in markdown or backticks.',
+          [{ role: 'user', content: prompt }]
+        )
+        return await consumeClineStream(stream)
+      })
+      const clean = text.replace(/```json|```/g, '').trim()
+      return JSON.parse(clean) as T
+    } catch (clineErr) {
+      console.warn('[AI Client] Cline SDK structured JSON call failed, falling back to @google/genai:', clineErr)
+    }
+  }
+
+  // Default / Fallback: Gemini (using @google/genai SDK)
   const ai = getGenAI()
-  const modelId = 'gemini-2.5-flash'
+  const modelId = getGeminiFlashModel()
 
   const response = await callWithRetry(() =>
     ai.models.generateContent({
@@ -260,9 +354,42 @@ export async function analyzeImage(imageUrl: string, prompt: string): Promise<st
 
   const base64Image = buffer.toString('base64')
 
+  // Cline SDK integration: multimodal analysis via Cline SDK Gemini handler
+  if (isClineSdkActive()) {
+    try {
+      const handler = getClineGeminiHandler(false)
+      const text = await withTimeout(
+        (async () => {
+          const stream = handler.createMessage(
+            'You are an expert civic infrastructure inspector.',
+            [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'image',
+                    data: base64Image,
+                    mediaType: mimeType,
+                  },
+                  { type: 'text', text: prompt },
+                ],
+              },
+            ]
+          )
+          return await consumeClineStream(stream)
+        })(),
+        15000,
+        'Cline SDK image analysis'
+      )
+      return text.trim()
+    } catch (clineErr) {
+      console.warn('[AI Client] Cline SDK image analysis failed, falling back to @google/genai:', clineErr)
+    }
+  }
+
   const response = await callWithRetry(() =>
     ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getGeminiFlashModel(),
       contents: [
         {
           role: 'user',
@@ -340,9 +467,26 @@ export async function generateText(
     return response.choices[0]?.message?.content || ''
   }
 
-  // Gemini (via @google/genai) - strictly Flash everywhere
+  // Cline SDK integration: execute text generation via Cline SDK Gemini handler
+  if (isClineSdkActive()) {
+    try {
+      const handler = getClineGeminiHandler(usePro)
+      const text = await callWithRetry(async () => {
+        const stream = handler.createMessage(
+          systemInstruction || 'You are a helpful civic assistant.',
+          [{ role: 'user', content: prompt }]
+        )
+        return await consumeClineStream(stream)
+      })
+      return text.trim()
+    } catch (clineErr) {
+      console.warn('[AI Client] Cline SDK text generation failed, falling back to @google/genai:', clineErr)
+    }
+  }
+
+  // Default / Fallback: Gemini (via @google/genai)
   const ai = getGenAI()
-  const modelId = 'gemini-2.5-flash'
+  const modelId = getGeminiFlashModel()
 
   const response = await callWithRetry(() =>
     ai.models.generateContent({

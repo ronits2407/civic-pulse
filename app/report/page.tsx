@@ -11,6 +11,12 @@ import { toast } from 'sonner'
 import { LocationPickerPanel } from '@/components/report/LocationPickerPanel'
 import { WebcamModal } from '@/components/report/WebcamModal'
 
+interface LocationMeta {
+  source: 'device_gps' | 'map_pin'
+  accuracy: number | null
+  capturedAt: string
+}
+
 export default function ReportPage() {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -24,6 +30,7 @@ export default function ReportPage() {
   const [error, setError] = useState('')
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number; address: string } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [locationMeta, setLocationMeta] = useState<LocationMeta | null>(null)
   
   // Webcam state
   const [isCameraOpen, setIsCameraOpen] = useState(false)
@@ -164,6 +171,11 @@ export default function ReportPage() {
         if (data.address) address = data.address
       } catch {}
       setCoordinates({ lat, lng, address })
+      setLocationMeta({
+        source: 'device_gps',
+        accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
+        capturedAt: new Date(pos.timestamp || Date.now()).toISOString(),
+      })
       setLocationMode('gps')
       toast.success('Location captured!', { id: 'gps-toast' })
     } catch {
@@ -178,6 +190,7 @@ export default function ReportPage() {
   // ----------------------------------------------------------------
   function handleMapConfirm(loc: { lat: number; lng: number }, address: string) {
     setCoordinates({ lat: loc.lat, lng: loc.lng, address })
+    setLocationMeta({ source: 'map_pin', accuracy: null, capturedAt: new Date().toISOString() })
     setLocationMode('map')
   }
 
@@ -191,6 +204,7 @@ export default function ReportPage() {
 
     try {
       let finalCoords = coordinates
+      let finalMeta = locationMeta
 
       // If no location picked, silently try GPS one last time
       if (!finalCoords) {
@@ -208,6 +222,11 @@ export default function ReportPage() {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             address,
+          }
+          finalMeta = {
+            source: 'device_gps',
+            accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
+            capturedAt: new Date(pos.timestamp || Date.now()).toISOString(),
           }
         } catch {}
       }
@@ -249,7 +268,15 @@ export default function ReportPage() {
       const response = await fetch('/api/reports/process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, imageUrl, videoUrl, coordinates: finalCoords, userId: user.id }),
+        body: JSON.stringify({
+          text,
+          imageUrl,
+          videoUrl,
+          coordinates: finalCoords,
+          locationSource: finalMeta?.source ?? null,
+          locationAccuracy: finalMeta?.accuracy ?? null,
+          locationCapturedAt: finalMeta?.capturedAt ?? null,
+        }),
       })
 
       const data = await response.json()

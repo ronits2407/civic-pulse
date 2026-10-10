@@ -1,21 +1,13 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/db/server'
+import { createServiceClient } from '@/lib/db/server'
+import { requireAdmin } from '@/lib/auth/admin-guard'
 import { getOptimalClusters } from '@/lib/utils/clustering'
 import wkx from 'wkx'
 export async function GET() {
   try {
-    const supabase = await createServerSupabaseClient()
-    
-    // Auth check
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
+    const supabase = createServiceClient()
 
     // Fetch active issues
     const { data: issues, error } = await supabase

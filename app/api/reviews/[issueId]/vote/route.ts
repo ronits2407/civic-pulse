@@ -1,28 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/db/server'
+import { getRequestUser } from '@/lib/auth/request-user'
+import { isUuid } from '@/lib/evidence/media'
+import { isUrgentSafety } from '@/lib/evidence/policy'
+import { recordEvent } from '@/lib/evidence/repository'
+import { errorMessage } from '@/lib/evidence/errors'
 
+/**
+ * INTAKE community review: "is this report plausible at this place and time?"
+ * This route can never approve a resolution or mark an issue resolved; resolution
+ * is verified separately via /api/issues/[issueId]/resolution-review.
+ */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ issueId: string }> }) {
   try {
     const { issueId } = await params
-    const body = await req.json()
-    const { userId, verdict, comment, distanceMeters } = body
+    if (!isUuid(issueId)) return NextResponse.json({ error: 'Invalid issue id' }, { status: 400 })
 
-    if (!userId || typeof verdict !== 'boolean') {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    // Identity comes from the session only; userId / distance in the body are ignored.
+    const auth = await getRequestUser(req)
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = auth.user.id
+
+    const body = await req.json().catch(() => ({}))
+    const { verdict } = body
+    const comment = typeof body.comment === 'string' ? body.comment.slice(0, 500) : null
+
+    if (typeof verdict !== 'boolean') {
+      return NextResponse.json({ error: 'Missing required field: verdict (boolean)' }, { status: 400 })
     }
 
     const supabase = createServiceClient()
 
-    // 1. Insert verification record
+    const { data: target, error: targetError } = await supabase
+      .from('issues')
+      .select('user_id, status, severity, is_emergency')
+      .eq('id', issueId)
+      .maybeSingle()
+    if (targetError) throw targetError
+    if (!target) return NextResponse.json({ error: 'Issue not found' }, { status: 404 })
+    if (target.status !== 'community_review') {
+      return NextResponse.json({ error: 'This report is not open for community review.' }, { status: 409 })
+    }
+    if (target.user_id === userId) {
+      return NextResponse.json({ error: 'You cannot review your own report.' }, { status: 403 })
+    }
+
+    // 1. Insert verification record (unique per issue/user)
     const { error: insertError } = await supabase.from('verifications').insert({
       issue_id: issueId,
       user_id: userId,
       verdict: verdict,
-      comment: comment || null,
-      distance_meters: distanceMeters || null,
+      comment,
+      distance_meters: null,
     })
 
-    if (insertError) throw insertError
+    if (insertError) {
+      if ((insertError as { code?: string }).code === '23505') {
+        return NextResponse.json({ error: 'You have already reviewed this report.' }, { status: 409 })
+      }
+      throw insertError
+    }
 
     // 2. Add karma for participating (+2)
     await supabase.from('karma_events').insert({
@@ -47,7 +84,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
       else denies++
     })
 
-    // Check quorum rules
     const totalVotes = confirms + denies
     let finalOutcome: 'confirmed' | 'rejected' | 'pending' = 'pending'
 
@@ -59,16 +95,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
       }
     }
 
+    // Urgent safety hazards are never dismissed by a community vote; they stay routed to the department.
+    if (finalOutcome === 'rejected' && isUrgentSafety({ isEmergency: target.is_emergency, severity: target.severity })) {
+      finalOutcome = 'confirmed'
+    }
+
     // 4. Handle final outcome if quorum reached
     if (finalOutcome !== 'pending') {
-      // Get the original issue to find the reporter
-      const { data: issue } = await supabase
-        .from('issues')
-        .select('user_id')
-        .eq('id', issueId)
-        .single()
-        
-      const reporterId = issue?.user_id
+      const reporterId = target.user_id
 
       if (finalOutcome === 'confirmed') {
         // Update issue: resume pipeline
@@ -76,7 +110,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
           status: 'open',
           pipeline_stage: 'agent4_resolution',
           review_confirmed_at: new Date().toISOString(),
-        }).eq('id', issueId)
+        }).eq('id', issueId).eq('status', 'community_review')
 
         // Award reporter +20 karma
         if (reporterId) {
@@ -99,6 +133,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
           })
         }
 
+        await recordEvent({
+          issueId,
+          eventType: 'intake_review_confirmed',
+          actorRole: 'system',
+          summary: 'Nearby residents found the report plausible; it continues to the department.',
+        }).catch(err => console.error('Failed to record intake review event:', err))
+
         // Trigger Agent 4 manually by calling the pipeline resume endpoint (background)
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
         fetch(`${appUrl}/api/reports/resume`, {
@@ -108,22 +149,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
         }).catch(err => console.error('Failed to resume pipeline:', err))
 
       } else if (finalOutcome === 'rejected') {
-        // Update issue: dismiss
+        // No karma penalty: a rejected report is a plausibility finding, not a judgement on the citizen.
         await supabase.from('issues').update({
           status: 'closed',
           pipeline_stage: 'review_rejected',
           review_confirmed_at: new Date().toISOString(),
-        }).eq('id', issueId)
-
-        // Penalize reporter -5 karma
-        if (reporterId) {
-          await supabase.from('karma_events').insert({
-            user_id: reporterId,
-            event_type: 'issue_community_rejected',
-            points: -5,
-            issue_id: issueId,
-          })
-        }
+        }).eq('id', issueId).eq('status', 'community_review')
 
         // Award majority voters +5 bonus
         const majorityVoters = verifications.filter(v => v.verdict === false).map(v => v.user_id)
@@ -135,12 +166,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
             issue_id: issueId,
           })
         }
+
+        await recordEvent({
+          issueId,
+          eventType: 'intake_review_not_confirmed',
+          actorRole: 'system',
+          summary: 'Nearby residents could not confirm the report. This is not a finding that the reporter was dishonest.',
+        }).catch(err => console.error('Failed to record intake review event:', err))
       }
     }
 
     return NextResponse.json({ success: true, outcome: finalOutcome })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error casting vote:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: errorMessage(error) }, { status: 500 })
   }
 }

@@ -27,7 +27,14 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const protectedRoutes = ['/dashboard', '/report', '/admin']
+  // Demo mode: /admin and /municipality are open (no login, no staff membership needed).
+  const demo = process.env.DEMO_MODE !== 'false'
+  const path = request.nextUrl.pathname
+  if (demo && (path.startsWith('/admin') || path.startsWith('/municipality'))) {
+    return supabaseResponse
+  }
+
+  const protectedRoutes = ['/dashboard', '/report', '/admin', '/municipality']
   const isProtected = protectedRoutes.some(route =>
     request.nextUrl.pathname.startsWith(route)
   )
@@ -36,7 +43,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  if (request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/municipality')) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -52,5 +59,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/report/:path*', '/admin/:path*'],
+  matcher: ['/dashboard/:path*', '/report/:path*', '/admin/:path*', '/municipality/:path*'],
 }

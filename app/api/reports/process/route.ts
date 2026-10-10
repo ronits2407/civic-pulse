@@ -3,18 +3,41 @@ import { createServiceClient } from '@/lib/db/server'
 import { createIssuePipeline } from '@/lib/agents/pipeline'
 import { generateEmbedding } from '@/lib/ai/client'
 import { AgentState } from '@/lib/db/types'
+import { getRequestUser } from '@/lib/auth/request-user'
+import { isValidLatLng } from '@/lib/evidence/geo'
+import { recordEvent } from '@/lib/evidence/repository'
+import { errorMessage } from '@/lib/evidence/errors'
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { text, imageUrl, videoUrl, coordinates, userId } = body
+    // Identity comes from the session only; any userId in the body is ignored.
+    const auth = await getRequestUser(req)
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = auth.user.id
 
-    if (!text || !coordinates || !userId) {
+    const body = await req.json()
+    const { text, imageUrl, videoUrl, coordinates, address } = body
+
+    if (!text || !coordinates || !isValidLatLng(coordinates)) {
       return NextResponse.json(
-        { error: 'Missing required fields: text, coordinates, userId' },
+        { error: 'Missing or invalid required fields: text, coordinates' },
         { status: 400 }
       )
     }
+
+    // Location provenance: how the reporter chose the location, GPS accuracy (m) and capture time.
+    const locationSource: 'device_gps' | 'map_pin' | null =
+      body.locationSource === 'device_gps' || body.locationSource === 'map_pin' ? body.locationSource : null
+    const accuracyRaw = Number(body.locationAccuracy)
+    const locationAccuracy =
+      locationSource === 'device_gps' && Number.isFinite(accuracyRaw) && accuracyRaw >= 0 && accuracyRaw < 100000
+        ? accuracyRaw
+        : null
+    const capturedRaw = typeof body.locationCapturedAt === 'string' ? new Date(body.locationCapturedAt) : null
+    const locationCapturedAt =
+      capturedRaw && !Number.isNaN(capturedRaw.getTime()) && capturedRaw.getTime() <= Date.now() + 5 * 60_000
+        ? capturedRaw.toISOString()
+        : null
 
     const supabase = createServiceClient()
 
@@ -28,15 +51,27 @@ export async function POST(req: NextRequest) {
         photo_url: imageUrl || null,
         video_url: videoUrl || null,
         location: `POINT(${coordinates.lng} ${coordinates.lat})`,
-        address: coordinates.address || '',
+        address: address || '',
         status: 'open',
         embedding,
-        pipeline_stage: 'agent0_translation'
+        pipeline_stage: 'agent0_translation',
+        location_source: locationSource,
+        location_accuracy_m: locationAccuracy,
+        location_captured_at: locationCapturedAt,
       })
       .select()
       .single()
 
     if (insertError) throw insertError
+
+    await recordEvent({
+      issueId: issue.id,
+      eventType: 'reported',
+      actorId: userId,
+      actorRole: 'citizen',
+      summary: 'Issue reported.',
+      metadata: { location_source: locationSource },
+    }).catch((e) => console.error('Failed to record report event:', e))
 
     // Award +10 karma for reporting an issue
     await supabase.from('karma_events').insert({
@@ -54,7 +89,7 @@ export async function POST(req: NextRequest) {
       imageUrl: imageUrl || null,
       videoUrl: videoUrl || null,
       coordinates,
-      address: coordinates.address || '',
+      address: address || '',
       userId,
       originalLanguage: 'English',
       englishTranslation: '',
@@ -70,7 +105,7 @@ export async function POST(req: NextRequest) {
     // Run asynchronously in the background using Next.js after()
     after(() => {
       const config = { configurable: { thread_id: issue.id } };
-      pipeline.invoke(initialState as any, config).catch(async (err) => {
+      pipeline.invoke(initialState as unknown as Parameters<typeof pipeline.invoke>[0], config).catch(async (err) => {
         console.error('Pipeline Background Error:', err)
         await supabase.from('issues').update({ pipeline_stage: 'failed' }).eq('id', issue.id)
       })
@@ -80,9 +115,9 @@ export async function POST(req: NextRequest) {
       success: true,
       issueId: issue.id,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: error.message },
+      { error: errorMessage(error) },
       { status: 500 }
     )
   }

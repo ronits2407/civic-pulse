@@ -57,6 +57,7 @@ import { IssueMapPanel } from './IssueMapPanel'
 import { Agent2MapVisuals } from './Agent2MapVisuals'
 import { CitizenLeaderboardPanel } from './CitizenLeaderboardPanel'
 import { MiniMapWidget } from './MiniMapWidget'
+import { MarkdownRenderer } from '@/components/ui/markdown'
 
 // Categories metadata for styling
 const CATEGORY_DETAILS: Record<string, { icon: any; label: string; color: string; bgColor: string; borderColor: string }> = {
@@ -300,9 +301,7 @@ function Agent1Visuals({ issue, isRunning }: { issue: Issue, isRunning: boolean 
             <span className="text-[11px] font-bold text-[#0969da] uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
               <Sparkles className="w-4 h-4" /> Visual Analysis
             </span>
-            <p className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
-              {imageAnalysisText}
-            </p>
+            <MarkdownRenderer content={imageAnalysisText} />
           </div>
         )}
       </div>
@@ -493,7 +492,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
     if (!profile?.home_location) return
     setIsFetchingReviews(true)
     try {
-      const res = await fetch(`/api/reviews?userId=${user.id}`)
+      const res = await fetch('/api/reviews')
       if (res.ok) {
         const data = await res.json()
         setNearbyReviews(data.issues || [])
@@ -515,9 +514,12 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
       const res = await fetch(`/api/reviews/${issueId}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, verdict, distanceMeters: 0 })
+        body: JSON.stringify({ verdict })
       })
-      if (!res.ok) throw new Error('Failed to submit vote')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to submit vote')
+      }
       toast.success('Vote submitted successfully!', { id: toastId })
       setNearbyReviews(prev => prev.filter(i => i.id !== issueId))
     } catch (error: any) {
@@ -944,7 +946,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                       {review.reasoning && (
                         <div className="bg-muted/50 p-2 rounded text-[10px] border border-border">
                           <span className="font-semibold text-muted-foreground mr-1">AI Note:</span>
-                          <span className="text-muted-foreground">{review.reasoning}</span>
+                          <MarkdownRenderer content={review.reasoning} className="text-[10px] text-muted-foreground" />
                         </div>
                       )}
                       <div className="flex gap-2 mt-1">
@@ -1546,8 +1548,9 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                                     )}
 
                                     {selectedIssue.reasoning && (
-                                      <div className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
-                                        <span className="font-bold text-muted-foreground">Trace:</span> {selectedIssue.reasoning}
+                                      <div className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium space-y-1">
+                                        <span className="font-bold text-muted-foreground block">Trace:</span>
+                                        <MarkdownRenderer content={selectedIssue.reasoning} />
                                       </div>
                                     )}
                                   </div>
@@ -1589,9 +1592,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                                       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2.5">
                                         <FileText className="w-4 h-4 text-emerald-500" /> Generated Civic Brief (Officer view)
                                       </span>
-                                      <p className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
-                                        &ldquo;{selectedIssue.civic_brief}&rdquo;
-                                      </p>
+                                      <MarkdownRenderer content={selectedIssue.civic_brief} />
                                     </div>
                                   ) : (
                                     <p className="text-[10px] text-muted-foreground italic">SLA generated, awaiting brief indexing.</p>

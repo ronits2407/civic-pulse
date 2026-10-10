@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/db/client'
 import { signOut } from '@/lib/auth/actions'
@@ -29,6 +30,7 @@ import {
   AlertCircle,
   Award,
   Building,
+  Building2,
   ShieldCheck,
   Zap,
   Leaf,
@@ -56,6 +58,7 @@ import { toast } from 'sonner'
 import { IssueMapPanel } from '@/components/dashboard/IssueMapPanel'
 import { RoutePlannerPanel } from '@/components/admin/RoutePlannerPanel'
 import { Agent5PredictivePanel } from '@/components/admin/Agent5PredictivePanel'
+import { MarkdownRenderer } from '@/components/ui/markdown'
 import { Navigation } from 'lucide-react'
 import { MiniMapWidget } from '@/components/dashboard/MiniMapWidget'
 
@@ -295,9 +298,7 @@ function Agent1Visuals({ issue, isRunning }: { issue: Issue, isRunning: boolean 
             <span className="text-[11px] font-bold text-[#0969da] uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
               <Sparkles className="w-4 h-4" /> Visual Analysis
             </span>
-            <p className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
-              {imageAnalysisText}
-            </p>
+            <MarkdownRenderer content={imageAnalysisText} />
           </div>
         )}
       </div>
@@ -508,11 +509,21 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
       })
-      if (!res.ok) throw new Error('Failed to update')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to update')
+      }
       toast.success('Issue updated successfully', { id: toastId })
-      // Update local state
-      setSelectedIssue({ ...selectedIssue, ...updates })
-      setIssues(issues.map(i => i.id === selectedIssue.id ? { ...i, ...updates } : i))
+      // Update local state (mirror the server-side resolve bookkeeping)
+      const local: Partial<Issue> = { ...updates }
+      if (updates.status === 'resolved') {
+        local.resolved_at = new Date().toISOString()
+        local.resolution_verification_state = 'verified'
+      } else if (updates.status) {
+        local.resolved_at = null
+      }
+      setSelectedIssue({ ...selectedIssue, ...local })
+      setIssues(issues.map(i => i.id === selectedIssue.id ? { ...i, ...local } : i))
     } catch (error: any) {
       toast.error(error.message, { id: toastId })
     } finally {
@@ -666,8 +677,17 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
       <nav className="sticky top-0 z-40 bg-background border-b border-border transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="flex justify-between items-center h-16">
-            {/* Left side empty placeholder to balance flex layout */}
-            <div className="flex-1"></div>
+            {/* Left side: Navigation link to Municipal Workspace */}
+            <div className="flex-1 flex items-center gap-3">
+              <Link
+                href="/municipality/dashboard"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card/60 hover:bg-muted text-xs font-semibold text-foreground transition-colors shadow-sm"
+              >
+                <Building2 className="w-3.5 h-3.5 text-[#0969da]" />
+                <span className="hidden sm:inline">Municipal Workspace</span>
+                <span className="sm:hidden">Municipal</span>
+              </Link>
+            </div>
 
             {/* Centered Logo / Title */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none select-none">
@@ -1042,8 +1062,19 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                             </div>
 
                             {/* Status, Severity & Chevron */}
-                            <div className="flex items-center gap-3 shrink-0">
-
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Button
+                                asChild
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-7 px-2.5 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-[#0969da] hover:bg-blue-950/30 border border-transparent hover:border-blue-900/40 hidden sm:inline-flex items-center gap-1 transition-all"
+                              >
+                                <Link href={`/municipality/dashboard?issueId=${issue.id}${issue.department_id ? `&departmentId=${issue.department_id}` : ''}`}>
+                                  <Building2 className="w-3.5 h-3.5" />
+                                  <span>Municipal</span>
+                                </Link>
+                              </Button>
                               <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/card:text-foreground transition-colors group-hover/card:translate-x-0.5 duration-200" />
                             </div>
                           </CardContent>
@@ -1134,6 +1165,17 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                             <AlertCircle className="w-3 h-3" /> Emergency
                           </span>
                         )}
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2.5 rounded-full border-blue-900/40 bg-blue-950/30 text-blue-300 hover:bg-blue-900/40 hover:text-white text-[10px] font-semibold flex items-center gap-1.5"
+                        >
+                          <Link href={`/municipality/dashboard?issueId=${selectedIssue.id}${selectedIssue.department_id ? `&departmentId=${selectedIssue.department_id}` : ''}`}>
+                            <Building2 className="w-3 h-3 text-[#0969da]" />
+                            <span>Municipal Workspace</span>
+                          </Link>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1406,8 +1448,9 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                                     )}
 
                                     {selectedIssue.reasoning && (
-                                      <div className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
-                                        <span className="font-bold text-muted-foreground">Trace:</span> {selectedIssue.reasoning}
+                                      <div className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium space-y-1">
+                                        <span className="font-bold text-muted-foreground block">Trace:</span>
+                                        <MarkdownRenderer content={selectedIssue.reasoning} />
                                       </div>
                                     )}
                                   </div>
@@ -1449,9 +1492,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                                       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2.5">
                                         <FileText className="w-4 h-4 text-emerald-500" /> Generated Civic Brief (Officer view)
                                       </span>
-                                      <p className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
-                                        &ldquo;{selectedIssue.civic_brief}&rdquo;
-                                      </p>
+                                      <MarkdownRenderer content={selectedIssue.civic_brief} />
                                     </div>
                                   ) : (
                                     <p className="text-[10px] text-muted-foreground italic">SLA generated, awaiting brief indexing.</p>
@@ -1508,6 +1549,57 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                   <h4 className="text-[13px] font-bold text-foreground tracking-wider uppercase flex items-center gap-2 leading-none">
                     <Wrench className="w-4 h-4 text-[#0969da]" /> Administrative Actions
                   </h4>
+
+                  {/* Resolve status + direct resolve (demo mode) */}
+                  {(() => {
+                    const isResolved = selectedIssue.status === 'resolved'
+                    const vState = selectedIssue.resolution_verification_state || 'not_claimed'
+                    return (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-background border border-border rounded-xl p-4">
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Resolution Status</p>
+                          <p className={`text-sm font-bold flex items-center gap-2 ${isResolved ? 'text-green-500' : 'text-amber-500'}`}>
+                            {isResolved ? <CheckCircle2 className="w-4 h-4" /> : <Clock3 className="w-4 h-4" />}
+                            {isResolved ? 'Resolved' : 'Not resolved'}
+                            <span className="text-[11px] font-medium text-muted-foreground">
+                              (status: {selectedIssue.status.replace(/_/g, ' ')} · verification: {vState.replace(/_/g, ' ')})
+                            </span>
+                          </p>
+                          {isResolved && selectedIssue.resolved_at && (
+                            <p className="text-[11px] text-muted-foreground">Resolved on {new Date(selectedIssue.resolved_at).toLocaleString()}</p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            asChild
+                            variant="outline"
+                            className="bg-card border border-blue-900/40 hover:bg-blue-950/40 text-blue-300 text-xs h-10 px-4 rounded-xl flex items-center gap-2"
+                          >
+                            <Link href={`/municipality/dashboard?issueId=${selectedIssue.id}${selectedIssue.department_id ? `&departmentId=${selectedIssue.department_id}` : ''}`}>
+                              <Building2 className="w-4 h-4 text-[#0969da]" /> Municipal Workspace
+                            </Link>
+                          </Button>
+                          {isResolved ? (
+                            <Button
+                              disabled={isUpdatingStatus}
+                              onClick={() => handleUpdateIssue({ status: 'in_progress' })}
+                              className="bg-card border border-border hover:bg-muted text-foreground text-xs h-10 px-5 rounded-xl"
+                            >
+                              Reopen Issue
+                            </Button>
+                          ) : (
+                            <Button
+                              disabled={isUpdatingStatus}
+                              onClick={() => handleUpdateIssue({ status: 'resolved' })}
+                              className="bg-green-600 hover:bg-green-700 text-white font-semibold text-xs h-10 px-5 rounded-xl"
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-2" /> Mark as Resolved
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
@@ -1595,7 +1687,16 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-8 mt-4 border-t border-border">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 mt-4 border-t border-border">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full sm:w-auto bg-blue-950/30 border border-blue-900/40 hover:bg-blue-900/30 text-blue-300 text-xs h-10 px-5 rounded-xl flex items-center gap-2"
+                  >
+                    <Link href={`/municipality/dashboard?issueId=${selectedIssue.id}${selectedIssue.department_id ? `&departmentId=${selectedIssue.department_id}` : ''}`}>
+                      <Building2 className="w-4 h-4 text-[#0969da]" /> Open in Municipal Workspace
+                    </Link>
+                  </Button>
                   <Button
                     onClick={() => setSelectedIssue(null)}
                     className="w-full sm:w-auto bg-card border border-border hover:bg-muted text-foreground text-xs h-10 px-6 rounded-xl"

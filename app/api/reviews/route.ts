@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/db/server'
+import { getRequestUser } from '@/lib/auth/request-user'
 import wkx from 'wkx'
+import { errorMessage } from '@/lib/evidence/errors'
 
 // Haversine distance in meters
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -20,12 +22,12 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url)
-    const userId = searchParams.get('userId')
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
+    // Identity is derived from the session; a userId query param is never trusted.
+    const auth = await getRequestUser(req)
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const userId = auth.user.id
 
     const supabase = createServiceClient()
 
@@ -48,12 +50,6 @@ export async function GET(req: NextRequest) {
     // Let's assume profile.home_location is returned as WKB hex string. Parsing it is hard.
     
     // Instead of doing it in JS, let's use the PostGIS ST_Distance function in a raw query using rpc, but if we don't have rpc, we can fetch lat and lng using a quick select.
-    const { data: coordsData, error: coordsError } = await supabase
-      .from('profiles')
-      .select('id, location:home_location')
-      .eq('id', userId)
-      .single()
-      
     // Actually, let's just require the frontend to pass lat/lng when it fetches, OR we can extract it from the user's browser geolocation if they click "fetch".
     // Wait, let's just make the frontend pass it. But the frontend doesn't store it.
     // Let's modify the profile table to also store `home_lat` and `home_lng` explicitly to make this easy. No, that requires another schema change.
@@ -71,7 +67,7 @@ export async function GET(req: NextRequest) {
       } else {
         // Parse hex WKB string
         try {
-          const geom = wkx.Geometry.parse(Buffer.from(profile.home_location, 'hex')) as any;
+          const geom = wkx.Geometry.parse(Buffer.from(profile.home_location, 'hex')) as unknown as { x?: number; y?: number };
           if (geom.x && geom.y) {
             lng = geom.x;
             lat = geom.y;
@@ -129,7 +125,7 @@ export async function GET(req: NextRequest) {
           }
         } else {
           try {
-            const geom = wkx.Geometry.parse(Buffer.from(issue.location, 'hex')) as any;
+            const geom = wkx.Geometry.parse(Buffer.from(issue.location, 'hex')) as unknown as { x?: number; y?: number };
             if (geom.x && geom.y) {
               issueLng = geom.x;
               issueLat = geom.y;
@@ -154,8 +150,8 @@ export async function GET(req: NextRequest) {
     })
 
     return NextResponse.json({ issues: nearbyIssues })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching reviews:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: errorMessage(error) }, { status: 500 })
   }
 }

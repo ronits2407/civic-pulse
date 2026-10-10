@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabaseClient, createServiceClient } from '@/lib/db/server'
+import { createServiceClient } from '@/lib/db/server'
+import { requireAdmin } from '@/lib/auth/admin-guard'
 
 export async function GET(
   request: Request,
@@ -7,22 +8,8 @@ export async function GET(
 ) {
   try {
     const { issueId } = await params
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
 
     const serviceClient = createServiceClient()
     const { data, error } = await serviceClient
@@ -36,7 +23,7 @@ export async function GET(
     // Fetch user metadata for avatars and names
     const uniqueUserIds = [...new Set(data.map((c: any) => c.user_id))]
     const usersData = await Promise.all(
-      uniqueUserIds.map(id => serviceClient.auth.admin.getUserById(id))
+      uniqueUserIds.filter(Boolean).map(id => serviceClient.auth.admin.getUserById(id))
     )
     const userMetaMap: Record<string, any> = {}
     for (const { data: userData } of usersData) {
@@ -72,22 +59,8 @@ export async function POST(
     const { issueId } = await params
     const { commentText } = await request.json()
 
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
 
     if (!commentText || typeof commentText !== 'string') {
       return NextResponse.json({ error: 'Invalid comment text' }, { status: 400 })
@@ -98,7 +71,7 @@ export async function POST(
       .from('issue_comments')
       .insert({
         issue_id: issueId,
-        user_id: user.id,
+        user_id: guard.userId,
         comment_text: commentText
       })
       .select('*, profiles(email)')

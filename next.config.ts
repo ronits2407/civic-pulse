@@ -10,6 +10,8 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // @cline/* packages use dynamic requires that Turbopack cannot bundle; load them from node_modules at runtime.
+  serverExternalPackages: ["@cline/sdk", "@cline/core", "@cline/llms", "@cline/agents", "@cline/shared"],
   turbopack: {}, // Silences Turbopack error caused by next-pwa's webpack config injection
 };
 

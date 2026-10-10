@@ -44,6 +44,12 @@ export interface Issue {
   sla_deadline: string | null
   resolved_at: string | null
   agent5_completed?: boolean
+  resolution_verification_state?: 'not_claimed' | 'awaiting_proof' | 'awaiting_community' | 'verified' | 'disputed' | 'unverified'
+  resolution_round?: number
+  review_expires_at?: string | null
+  location_source?: 'device_gps' | 'map_pin' | null
+  location_accuracy_m?: number | null
+  location_captured_at?: string | null
   weather_checked?: boolean | null
   web_search_checked?: boolean | null
   created_at: string

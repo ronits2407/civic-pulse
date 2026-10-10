@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog'
 import { Map, Loader2, Sparkles, BrainCircuit, Activity, AlertTriangle, ShieldAlert, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { MarkdownRenderer } from '@/components/ui/markdown'
 
 const Agent5PredictiveMapInner = dynamic(() => import('./Agent5PredictiveMapInner'), {
   ssr: false,
@@ -316,9 +317,10 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
                                 {(alert.confidence * 100).toFixed(0)}% Conf.
                               </span>
                             </div>
-                            <p className="text-[10px] text-muted-foreground leading-relaxed mt-1.5">
-                              {alert.basis_summary}
-                            </p>
+                            <MarkdownRenderer
+                              content={alert.basis_summary}
+                              className="text-[10px] text-muted-foreground leading-relaxed mt-1.5"
+                            />
                           </div>
                         </div>
                       ))}
