@@ -40,11 +40,12 @@ export async function GET(request: Request, props: { params: Promise<{ issue_id:
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#0d1117',
+            backgroundColor: '#f5f0e1',
             fontFamily: 'sans-serif',
-            color: '#e6edf3',
+            color: '#17140f',
             padding: '40px',
-            border: '8px solid #2da44e',
+            border: '10px solid #17140f',
+            position: 'relative',
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: '80%' }}>
@@ -52,8 +53,11 @@ export async function GET(request: Request, props: { params: Promise<{ issue_id:
               style={{
                 fontSize: 48,
                 fontWeight: 'bold',
-                color: '#2da44e',
-                marginBottom: 20,
+                color: '#17140f',
+                backgroundColor: '#f3d35b',
+                padding: '8px 32px',
+                borderRadius: 999,
+                marginBottom: 28,
                 textTransform: 'uppercase',
                 letterSpacing: 2,
                 display: 'flex',
@@ -63,13 +67,13 @@ export async function GET(request: Request, props: { params: Promise<{ issue_id:
             </div>
             <div style={{ fontSize: 32, marginBottom: 30, display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
               <div style={{ display: 'flex' }}>Your report&nbsp;</div>
-              <div style={{ color: '#0969da', fontWeight: 'bold', display: 'flex' }}>"{issue.title}"</div>
+              <div style={{ color: '#17140f', backgroundColor: '#b4c3ec', padding: '0 14px', borderRadius: 14, fontWeight: 'bold', display: 'flex' }}>"{issue.title}"</div>
               <div style={{ display: 'flex' }}>{` was fixed ${fixTimeText}.`}</div>
             </div>
             <div
               style={{
                 fontSize: 28,
-                color: '#8b949e',
+                color: '#5c564a',
                 marginBottom: 40,
                 fontStyle: 'italic',
                 display: 'flex',
@@ -83,21 +87,21 @@ export async function GET(request: Request, props: { params: Promise<{ issue_id:
               style={{
                 display: 'flex',
                 flexDirection: 'row',
-                backgroundColor: '#161b22',
+                backgroundColor: '#f2b5d9',
                 padding: '20px 40px',
-                borderRadius: 20,
-                border: '2px solid #30363d',
+                borderRadius: 40,
+                border: '3px solid #17140f',
                 alignItems: 'center',
               }}
             >
               <div style={{ fontSize: 40, marginRight: 15, display: 'flex' }}>🌟</div>
               <div style={{ fontSize: 32, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                 <div style={{ display: 'flex' }}>You improved the city for an estimated&nbsp;</div>
-                <div style={{ color: '#f87171', fontWeight: 'bold', display: 'flex' }}>{`${estimatedSaved}`}</div>
+                <div style={{ color: '#17140f', backgroundColor: '#f5f0e1', padding: '0 14px', borderRadius: 14, fontWeight: 'bold', display: 'flex' }}>{`${estimatedSaved}`}</div>
                 <div style={{ display: 'flex' }}>&nbsp;citizens!</div>
               </div>
             </div>
-            <div style={{ marginTop: 50, fontSize: 24, color: '#8b949e', display: 'flex' }}>
+            <div style={{ marginTop: 50, fontSize: 24, color: '#17140f', backgroundColor: '#9bab5a', padding: '8px 28px', borderRadius: 999, fontWeight: 'bold', display: 'flex' }}>
               CivicPulse - Empowering Citizens with AI
             </div>
           </div>

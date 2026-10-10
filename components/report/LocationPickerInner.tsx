@@ -29,16 +29,16 @@ function makePickedIcon(): L.DivIcon {
       <div style="position:relative;width:32px;height:32px">
         <div style="
           position:absolute;inset:0;border-radius:50%;
-          background:rgba(45,164,78,0.18);
+          background:rgba(127,145,69,0.18);
           animation:lp-pulse 2s ease-out infinite;
         "></div>
         <div style="
           position:absolute;top:0;left:50%;transform:translateX(-50%) rotate(-45deg);
           width:28px;height:28px;
-          background:#2da44e;
+          background:#7f9145;
           border-radius:50% 50% 50% 0;
-          border:2.5px solid #0d1117;
-          box-shadow:0 3px 12px rgba(45,164,78,0.55);
+          border:2.5px solid #f5f0e1;
+          box-shadow:0 3px 12px rgba(127,145,69,0.55);
           display:flex;align-items:center;justify-content:center;
         ">
           <div style="transform:rotate(45deg);color:#fff;font-size:14px;font-weight:700;line-height:1">+</div>
@@ -151,8 +151,8 @@ function LocateMeControl() {
       style={{
         width: 36,
         height: 36,
-        background: '#161b22',
-        border: '2px solid #30363d',
+        background: '#fbf8ef',
+        border: '2px solid #d8d0b8',
         borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
@@ -161,11 +161,11 @@ function LocateMeControl() {
         marginBottom: 10,
         marginRight: 10,
         boxShadow: '0 2px 10px rgba(0,0,0,0.55)',
-        color: locating ? '#8b949e' : '#2da44e',
+        color: locating ? '#6b6554' : '#7f9145',
         transition: 'color 0.2s, box-shadow 0.2s',
         outline: 'none',
       }}
-      onMouseEnter={e => { if (!locating) (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(45,164,78,0.25), 0 2px 10px rgba(0,0,0,0.55)' }}
+      onMouseEnter={e => { if (!locating) (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(127,145,69,0.25), 0 2px 10px rgba(0,0,0,0.55)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(0,0,0,0.55)' }}
     >
       {locating ? (
@@ -202,8 +202,7 @@ export default function LocationPickerInner({ initialLocation, onLocationPick }:
   return (
     <>
       <style>{`
-        .leaflet-container { background: #0d1117 !important; cursor: crosshair !important; }
-        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        .leaflet-container { background: #f5f0e1 !important; cursor: crosshair !important; }
         .lp-popup .leaflet-popup-content-wrapper {
           background: transparent !important;
           border: none !important;
@@ -214,18 +213,18 @@ export default function LocationPickerInner({ initialLocation, onLocationPick }:
         .lp-popup .leaflet-popup-content { margin: 0 !important; }
         .lp-popup .leaflet-popup-tip-container { display: none; }
         .leaflet-control-attribution {
-          background: rgba(13,17,23,0.8) !important;
-          color: #8b949e !important;
+          background: rgba(245,240,225,0.9) !important;
+          color: #6b6554 !important;
           font-size: 9px !important;
           border-radius: 6px 0 0 0 !important;
         }
-        .leaflet-control-attribution a { color: #8b949e !important; }
+        .leaflet-control-attribution a { color: #6b6554 !important; }
         .leaflet-control-zoom a {
-          background: #161b22 !important;
-          color: #e6edf3 !important;
-          border-color: #30363d !important;
+          background: #fbf8ef !important;
+          color: #17140f !important;
+          border-color: #d8d0b8 !important;
         }
-        .leaflet-control-zoom a:hover { background: #21262d !important; }
+        .leaflet-control-zoom a:hover { background: #e3dcc6 !important; }
         .lp-locate-control { background: transparent !important; border: none !important; }
         @keyframes lp-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
       `}</style>

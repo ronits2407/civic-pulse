@@ -57,7 +57,7 @@ function getCategoryColor(cat: string) {
 function makePinIcon(category: string, isCenter: boolean = false, delayMs: number = 0): L.DivIcon {
   const { pin } = getCategoryColor(category)
   const size = isCenter ? 24 : 16
-  const border = isCenter ? `2px solid #fff` : `1px solid #0d1117`
+  const border = isCenter ? `2px solid #fff` : `1px solid #f5f0e1`
   
   // Center pin is always visible. Other pins fade in.
   const animation = isCenter 
@@ -234,8 +234,7 @@ export default function Agent2MapInner({ issue, allIssues }: Props) {
   return (
     <>
       <style>{`
-        .leaflet-container { background: #0d1117 !important; }
-        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        .leaflet-container { background: #f5f0e1 !important; }
         .leaflet-control-attribution { display: none !important; }
       `}</style>
       <MapContainer

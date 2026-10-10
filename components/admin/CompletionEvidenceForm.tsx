@@ -106,7 +106,7 @@ export function CompletionEvidenceForm({ issueId, onSubmitted }: Props) {
         placeholder="Action taken (e.g. filled and compacted the pothole with cold mix)"
         className="text-sm"
       />
-      {error && <p className="text-xs text-rose-400">{error}</p>}
+      {error && <p className="text-xs text-rose-700">{error}</p>}
       <Button onClick={submit} disabled={submitting} className="w-full">
         {submitting ? 'Submitting...' : 'Submit for community review'}
       </Button>

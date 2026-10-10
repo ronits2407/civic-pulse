@@ -4,9 +4,9 @@ import type { EvidenceAssessment, EvidenceSignalResult, RiskLevel } from '@/lib/
 import { Badge } from '@/components/ui/badge'
 
 const RISK_STYLES: Record<RiskLevel, string> = {
-  low: 'bg-emerald-950/30 text-emerald-400 border-emerald-900/40',
-  medium: 'bg-amber-950/30 text-amber-400 border-amber-900/40',
-  high: 'bg-rose-950/30 text-rose-400 border-rose-900/40',
+  low: 'bg-olive/60 text-emerald-700 border-black/10',
+  medium: 'bg-sun/60 text-amber-700 border-black/10',
+  high: 'bg-blush/60 text-rose-700 border-black/10',
 }
 
 const OUTCOME_LABEL: Record<EvidenceSignalResult['outcome'], string> = {
@@ -18,9 +18,9 @@ const OUTCOME_LABEL: Record<EvidenceSignalResult['outcome'], string> = {
 }
 
 const OUTCOME_STYLE: Record<EvidenceSignalResult['outcome'], string> = {
-  supports: 'text-emerald-400',
-  neutral: 'text-sky-400',
-  contradicts: 'text-rose-400',
+  supports: 'text-emerald-700',
+  neutral: 'text-indigo-700',
+  contradicts: 'text-rose-700',
   unknown: 'text-muted-foreground',
   not_applicable: 'text-muted-foreground',
 }
@@ -76,7 +76,7 @@ export function AssessmentCard({ assessment, title }: { assessment: EvidenceAsse
             <span>{coveragePct}%</span>
           </div>
           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-[#0969da]" style={{ width: `${coveragePct}%` }} />
+            <div className="h-full bg-[#17140f]" style={{ width: `${coveragePct}%` }} />
           </div>
         </div>
       </div>

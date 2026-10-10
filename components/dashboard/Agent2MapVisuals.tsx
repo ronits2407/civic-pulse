@@ -58,7 +58,7 @@ export function Agent2MapVisuals({ issue, allIssues, agentState, children }: Pro
         
         {/* Overlay Badge */}
         <div className="absolute bottom-2 left-2 z-[1000]">
-          <span className="bg-black/80 text-[#0969da] text-[10px] font-bold px-2 py-1 rounded border border-[#0969da]/50 uppercase tracking-widest backdrop-blur-sm flex items-center gap-1.5 shadow-[0_0_10px_rgba(9,105,218,0.3)]">
+          <span className="bg-black/80 text-[#2f3fa8] text-[10px] font-bold px-2 py-1 rounded border border-black/15 uppercase tracking-widest backdrop-blur-sm flex items-center gap-1.5 shadow-[0_0_10px_rgba(9,105,218,0.3)]">
             <Loader2 className="w-3 h-3 animate-spin" /> Vector & Proximity Scan
           </span>
         </div>

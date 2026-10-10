@@ -122,14 +122,14 @@ export default async function MunicipalityDashboardPage({ searchParams }: Props)
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              <Building2 className="w-6 h-6 text-[#0969da]" />
+              <Building2 className="w-6 h-6 text-[#2f3fa8]" />
               <h1 className="text-2xl font-bold tracking-tight text-foreground">Municipal Workspace</h1>
               {isAdmin ? (
-                <Badge variant="outline" className="border-blue-900/40 bg-blue-950/30 text-blue-300 text-xs">
+                <Badge variant="outline" className="border-black/10 bg-sky/60 text-indigo-700 text-xs">
                   <ShieldCheck className="w-3 h-3 mr-1" /> All Departments
                 </Badge>
               ) : (
-                <Badge variant="outline" className="border-emerald-900/40 bg-emerald-950/30 text-emerald-300 text-xs">
+                <Badge variant="outline" className="border-black/10 bg-olive/60 text-emerald-700 text-xs">
                   Department Staff
                 </Badge>
               )}
@@ -162,7 +162,7 @@ export default async function MunicipalityDashboardPage({ searchParams }: Props)
               href={`/municipality/dashboard${targetIssueId ? `?issueId=${targetIssueId}` : ''}`}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-colors ${
                 !selectedDeptId
-                  ? 'bg-[#0969da] text-white'
+                  ? 'bg-[#17140f] text-white'
                   : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
@@ -177,7 +177,7 @@ export default async function MunicipalityDashboardPage({ searchParams }: Props)
                   href={`/municipality/dashboard?departmentId=${dept.id}${targetIssueId ? `&issueId=${targetIssueId}` : ''}`}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-colors ${
                     active
-                      ? 'bg-[#0969da] text-white'
+                      ? 'bg-[#17140f] text-white'
                       : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >

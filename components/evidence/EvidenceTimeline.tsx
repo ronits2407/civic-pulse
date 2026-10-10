@@ -18,7 +18,7 @@ function EventList({ events }: { events: PublicIssueEvent[] }) {
     <ol className="relative border-l border-border ml-2 space-y-3">
       {events.map((e) => (
         <li key={e.id} className="ml-4">
-          <span className="absolute -left-[5px] mt-1.5 h-2.5 w-2.5 rounded-full bg-[#0969da]" />
+          <span className="absolute -left-[5px] mt-1.5 h-2.5 w-2.5 rounded-full bg-[#17140f]" />
           <div className="text-xs font-semibold capitalize text-foreground">{eventLabel(e.eventType)}</div>
           {e.summary && <div className="text-xs text-muted-foreground">{e.summary}</div>}
           <div className="text-[10px] text-muted-foreground/70">

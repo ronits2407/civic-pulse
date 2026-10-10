@@ -15,9 +15,9 @@ import { Button } from '@/components/ui/button'
 const RoutePlannerMapInner = dynamic(() => import('./RoutePlannerMapInner'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-[#0d1117] rounded-xl">
+    <div className="w-full h-full flex items-center justify-center bg-[#fbf8ef] rounded-xl">
       <div className="flex flex-col items-center gap-3">
-        <Loader2 className="w-6 h-6 text-[#2da44e] animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#4d6a1f] animate-spin" />
         <span className="text-xs text-muted-foreground font-medium">Loading route engine…</span>
       </div>
     </div>
@@ -152,7 +152,7 @@ export function RoutePlannerPanel({ isOpen, onClose, userLocation }: Props) {
        <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 right-4 z-[1000] bg-[#0d1117]/80 border border-[#30363d] backdrop-blur text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="absolute top-4 right-4 z-[1000] bg-[#fbf8ef]/80 border border-border backdrop-blur text-muted-foreground hover:text-foreground hover:bg-muted"
           onClick={fetchClusters}
           disabled={loading}
           title="Refresh Clusters"
@@ -171,7 +171,7 @@ export function RoutePlannerPanel({ isOpen, onClose, userLocation }: Props) {
         <div className="w-full sm:w-[350px] border-r border-border bg-card/60 flex flex-col h-full z-10 shrink-0">
           <div className="p-4 border-b border-border">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Map className="w-4 h-4 text-[#0969da]" /> Admin Route Planner
+              <Map className="w-4 h-4 text-[#2f3fa8]" /> Admin Route Planner
             </h2>
             <p className="text-[11px] text-muted-foreground mt-1">
               Select a cluster to generate an optimized route.
@@ -181,11 +181,11 @@ export function RoutePlannerPanel({ isOpen, onClose, userLocation }: Props) {
           <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-800">
              {loading ? (
                 <div className="flex flex-col items-center justify-center h-32 gap-3 text-muted-foreground">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#0969da]" />
+                  <Loader2 className="w-5 h-5 animate-spin text-[#2f3fa8]" />
                   <span className="text-[11px] font-medium">Clustering Issues...</span>
                 </div>
              ) : error ? (
-                <div className="text-rose-400 text-xs p-3 bg-rose-500/10 rounded-lg border border-rose-500/20">
+                <div className="text-rose-700 text-xs p-3 bg-blush/40 rounded-lg border border-rose-700/30">
                   {error}
                 </div>
              ) : (
@@ -198,7 +198,7 @@ export function RoutePlannerPanel({ isOpen, onClose, userLocation }: Props) {
                         onClick={() => { setSelectedClusterId(c.id); setActiveRoute(null); }}
                         className={`text-left p-2.5 rounded-xl border transition-all ${
                           selectedClusterId === c.id 
-                            ? 'bg-[#0969da]/10 border-[#0969da]/40 ring-1 ring-[#0969da]' 
+                            ? 'bg-sky/40 border-black/15 ring-1 ring-[#17140f]/40'
                             : 'bg-background hover:bg-muted border-border'
                         }`}
                       >
@@ -221,22 +221,22 @@ export function RoutePlannerPanel({ isOpen, onClose, userLocation }: Props) {
                        <Button 
                          onClick={handleGenerateRoute}
                          disabled={routeLoading}
-                         className="w-full bg-[#0969da] hover:bg-blue-600 text-white font-semibold text-xs h-9"
+                         className="w-full bg-[#17140f] hover:bg-[#17140f] text-white font-semibold text-xs h-9"
                        >
                          {routeLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Navigation className="w-4 h-4 mr-2" />}
                          Generate Optimal Route
                        </Button>
 
                        {activeRoute && (
-                          <div className="mt-4 p-3 bg-[#2da44e]/10 border border-[#2da44e]/20 rounded-xl space-y-3">
-                             <div className="text-[10px] font-bold text-[#2da44e] uppercase tracking-wider text-center border-b border-[#2da44e]/20 pb-2">
+                          <div className="mt-4 p-3 bg-olive/30 border border-black/15 rounded-xl space-y-3">
+                             <div className="text-[10px] font-bold text-[#4d6a1f] uppercase tracking-wider text-center border-b border-black/15 pb-2">
                                Round-Trip Route
                              </div>
-                             <div className="flex justify-between items-center text-xs font-semibold text-[#2da44e]">
+                             <div className="flex justify-between items-center text-xs font-semibold text-[#4d6a1f]">
                                <span>Total ETA</span>
                                <span>{Math.round(parseInt(activeRoute.duration) / 60)} mins</span>
                              </div>
-                             <div className="flex justify-between items-center text-xs font-semibold text-[#2da44e]">
+                             <div className="flex justify-between items-center text-xs font-semibold text-[#4d6a1f]">
                                <span>Total Distance</span>
                                <span>{(activeRoute.distanceMeters / 1000).toFixed(1)} km</span>
                              </div>
@@ -251,7 +251,7 @@ export function RoutePlannerPanel({ isOpen, onClose, userLocation }: Props) {
                           <div className="space-y-1.5 max-h-[30vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-800">
                              {orderedIssues.map((issue, idx) => (
                                <div key={issue.id} className="flex gap-2 p-2 bg-background border border-border rounded-lg items-start">
-                                 <div className="w-4 h-4 rounded-full bg-slate-800 flex items-center justify-center text-[8px] font-bold text-white shrink-0 mt-0.5">
+                                 <div className="w-4 h-4 rounded-full bg-stone-300 flex items-center justify-center text-[8px] font-bold text-white shrink-0 mt-0.5">
                                    {idx + 1}
                                  </div>
                                  <div>

@@ -17,9 +17,9 @@ import type { MapIssue } from './IssueMapInner'
 const IssueMapInner = dynamic(() => import('./IssueMapInner'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-[#0d1117] rounded-xl">
+    <div className="w-full h-full flex items-center justify-center bg-[#fbf8ef] rounded-xl">
       <div className="flex flex-col items-center gap-3">
-        <Loader2 className="w-6 h-6 text-[#2da44e] animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#4d6a1f] animate-spin" />
         <span className="text-xs text-muted-foreground font-medium">Loading map engine…</span>
       </div>
     </div>
@@ -74,8 +74,8 @@ export function IssueMapPanel({ isOpen, onClose, userLocation }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/60">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#2da44e]/10 border border-[#2da44e]/20 flex items-center justify-center">
-              <Globe className="w-4 h-4 text-[#2da44e]" />
+            <div className="w-9 h-9 rounded-xl bg-olive/30 border border-black/15 flex items-center justify-center">
+              <Globe className="w-4 h-4 text-[#4d6a1f]" />
             </div>
             <div>
               <DialogTitle className="text-sm font-bold text-foreground leading-none">
@@ -132,18 +132,18 @@ export function IssueMapPanel({ isOpen, onClose, userLocation }: Props) {
         {/* Map area */}
         <div className="relative" style={{ height: 'calc(85vh - 73px)' }}>
           {loading && issues.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0d1117]">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fbf8ef]">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full border-2 border-[#2da44e]/20 border-t-[#2da44e] animate-spin" />
-                <Globe className="absolute inset-0 m-auto w-6 h-6 text-[#2da44e]" />
+                <div className="w-16 h-16 rounded-full border-2 border-black/15 border-t-[#2da44e] animate-spin" />
+                <Globe className="absolute inset-0 m-auto w-6 h-6 text-[#4d6a1f]" />
               </div>
               <p className="mt-4 text-sm font-semibold text-foreground">Loading city data…</p>
               <p className="mt-1 text-xs text-muted-foreground">Fetching civic issue pins</p>
             </div>
           ) : error ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0d1117] gap-4">
-              <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-rose-400" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fbf8ef] gap-4">
+              <div className="w-12 h-12 rounded-full bg-blush/40 border border-rose-700/30 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-rose-700" />
               </div>
               <div className="text-center">
                 <p className="text-sm font-semibold text-foreground">Map failed to load</p>
@@ -151,7 +151,7 @@ export function IssueMapPanel({ isOpen, onClose, userLocation }: Props) {
               </div>
               <Button
                 size="sm"
-                className="bg-[#2da44e] hover:bg-[#2c974b] text-foreground text-xs h-8"
+                className="bg-[#17140f] hover:bg-black text-[#f5f0e1] text-xs h-8"
                 onClick={() => {
                   hasFetched.current = false
                   fetchIssues()
@@ -165,22 +165,22 @@ export function IssueMapPanel({ isOpen, onClose, userLocation }: Props) {
           )}
 
           {/* Cluster legend overlay — bottom left */}
-          <div className="absolute bottom-4 left-4 z-[1000] bg-[#0d1117]/90 border border-[#30363d] rounded-xl px-3 py-2.5 backdrop-blur-sm shadow-lg">
-            <p className="text-[10px] font-bold text-[#8b949e] uppercase tracking-wider mb-2">Map Legend</p>
+          <div className="absolute bottom-4 left-4 z-[1000] bg-[#fbf8ef]/90 border border-border rounded-xl px-3 py-2.5 backdrop-blur-sm shadow-lg">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Map Legend</p>
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2 text-[10px] text-[#e6edf3] font-medium">
+              <div className="flex items-center gap-2 text-[10px] text-foreground font-medium">
                 <div
-                  className="w-3.5 h-3.5 rounded-full shrink-0 border border-white/10"
+                  className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/10"
                   style={{ background: '#2da44e' }}
                 />
                 Your location
               </div>
-              <div className="flex items-center gap-2 text-[10px] text-[#e6edf3] font-medium">
-                <div className="w-3.5 h-3.5 rounded-sm rotate-45 shrink-0 border border-white/10"
+              <div className="flex items-center gap-2 text-[10px] text-foreground font-medium">
+                <div className="w-3.5 h-3.5 rounded-sm rotate-45 shrink-0 border border-black/10"
                   style={{ background: '#0969da' }} />
                 Single issue pin
               </div>
-              <div className="flex items-center gap-2 text-[10px] text-[#e6edf3] font-medium">
+              <div className="flex items-center gap-2 text-[10px] text-foreground font-medium">
                 <div
                   className="w-4 h-4 rounded-full shrink-0 border-2"
                   style={{ borderColor: '#0969da', background: '#0969da18' }}

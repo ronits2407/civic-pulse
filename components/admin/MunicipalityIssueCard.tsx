@@ -43,7 +43,7 @@ export function MunicipalityIssueCard({ issue, isTarget = false }: { issue: Muni
       id={`issue-${issue.id}`}
       className={`rounded-2xl border transition-all duration-200 bg-card/40 p-5 space-y-3 ${
         isTarget
-          ? 'border-[#0969da] ring-2 ring-[#0969da]/30 shadow-lg shadow-blue-500/10 bg-[#0969da]/5'
+          ? 'border-[#17140f] ring-2 ring-[#17140f]/40 shadow-lg shadow-black/10 bg-sky/40'
           : 'border-border'
       }`}
     >
@@ -52,7 +52,7 @@ export function MunicipalityIssueCard({ issue, isTarget = false }: { issue: Muni
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-foreground">{issue.title || 'Untitled issue'}</h2>
             {isTarget && (
-              <Badge variant="outline" className="border-blue-500/40 bg-blue-500/15 text-blue-400 text-[10px]">
+              <Badge variant="outline" className="border-black/15 bg-sky/50 text-indigo-700 text-[10px]">
                 Target Issue
               </Badge>
             )}
@@ -61,12 +61,12 @@ export function MunicipalityIssueCard({ issue, isTarget = false }: { issue: Muni
         </div>
         <div className="flex flex-wrap justify-end gap-1.5">
           {issue.departmentName && (
-            <Badge variant="outline" className="border-blue-900/40 bg-blue-950/30 text-blue-300">
+            <Badge variant="outline" className="border-black/10 bg-sky/60 text-indigo-700">
               {issue.departmentName}
             </Badge>
           )}
           {urgent && (
-            <Badge variant="outline" className="border-rose-900/40 bg-rose-950/30 text-rose-400">
+            <Badge variant="outline" className="border-black/10 bg-blush/60 text-rose-700">
               Urgent
             </Badge>
           )}
@@ -80,8 +80,8 @@ export function MunicipalityIssueCard({ issue, isTarget = false }: { issue: Muni
       {issue.description && <p className="text-sm text-muted-foreground line-clamp-3">{issue.description}</p>}
 
       {issue.status === 'community_review' && (
-        <div className="bg-amber-950/20 border border-amber-900/30 rounded-xl p-3 text-xs space-y-1">
-          <div className="font-semibold text-amber-400">Intake Community Review Active</div>
+        <div className="bg-sun/60 border border-black/10 rounded-xl p-3 text-xs space-y-1">
+          <div className="font-semibold text-amber-700">Intake Community Review Active</div>
           <p className="text-muted-foreground text-[11px] leading-relaxed">
             This issue was flagged for resident intake verification. As an administrator, submitting completion proof will verify the report and open the 72-hour community resolution review.
           </p>

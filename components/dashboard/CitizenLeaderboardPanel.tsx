@@ -26,10 +26,10 @@ interface CurrentUserStats {
 }
 
 function getKarmaLevel(score: number) {
-  if (score >= 300) return { name: 'Civic Ambassador', level: 4, min: 300, max: 1000, next: 'Max Level', color: 'text-purple-400 border-purple-900/30 bg-purple-950/20' }
-  if (score >= 150) return { name: 'Civic Champion', level: 3, min: 150, max: 300, next: 'Civic Ambassador', color: 'text-blue-400 border-blue-900/30 bg-blue-950/20' }
-  if (score >= 50) return { name: 'Civic Guardian', level: 2, min: 50, max: 150, next: 'Civic Champion', color: 'text-emerald-400 border-emerald-900/30 bg-emerald-950/20' }
-  return { name: 'Civic Observer', level: 1, min: 0, max: 50, next: 'Civic Guardian', color: 'text-slate-400 border-slate-700 bg-slate-800' }
+  if (score >= 300) return { name: 'Civic Ambassador', level: 4, min: 300, max: 1000, next: 'Max Level', color: 'text-purple-700 border-black/10 bg-blush/60' }
+  if (score >= 150) return { name: 'Civic Champion', level: 3, min: 150, max: 300, next: 'Civic Ambassador', color: 'text-indigo-700 border-black/10 bg-sky/60' }
+  if (score >= 50) return { name: 'Civic Guardian', level: 2, min: 50, max: 150, next: 'Civic Champion', color: 'text-emerald-700 border-black/10 bg-olive/60' }
+  return { name: 'Civic Observer', level: 1, min: 0, max: 50, next: 'Civic Guardian', color: 'text-stone-600 border-black/15 bg-stone-300' }
 }
 
 export function CitizenLeaderboardPanel({ userId, isOpen, onClose }: { userId: string, isOpen: boolean, onClose: () => void }) {
@@ -67,7 +67,7 @@ export function CitizenLeaderboardPanel({ userId, isOpen, onClose }: { userId: s
         {isLoading ? (
           <Card className="bg-card border-0 overflow-hidden h-[600px] flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
-              <Loader2 className="w-8 h-8 animate-spin text-[#0969da]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#2f3fa8]" />
               <p className="text-sm text-muted-foreground font-medium animate-pulse">Loading Leaderboard...</p>
             </div>
           </Card>
@@ -75,10 +75,10 @@ export function CitizenLeaderboardPanel({ userId, isOpen, onClose }: { userId: s
           <Card className="bg-card border-0 overflow-hidden h-[80vh] min-h-[600px] flex flex-col">
             <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-400" />
+                <Trophy className="w-5 h-5 text-amber-700" />
                 <h2 className="text-lg font-bold text-foreground tracking-tight">Citizen Leaderboard</h2>
               </div>
-              <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-xs font-semibold px-2 py-0.5">
+              <Badge variant="outline" className="bg-sun/40 text-amber-700 border-sun-deep/60 text-xs font-semibold px-2 py-0.5">
                 Top 10 Citizens
               </Badge>
             </div>
@@ -100,12 +100,12 @@ export function CitizenLeaderboardPanel({ userId, isOpen, onClose }: { userId: s
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                       key={user.id}
-                      className={`flex items-center gap-4 p-3 rounded-xl border transition-colors ${isCurrentUser ? 'bg-blue-950/20 border-blue-900/50 shadow-[0_0_10px_rgba(9,105,218,0.1)]' : 'bg-background/50 border-border hover:bg-muted/50'}`}
+                      className={`flex items-center gap-4 p-3 rounded-xl border transition-colors ${isCurrentUser ? 'bg-sky/60 border-black/10 shadow-[0_0_10px_rgba(9,105,218,0.1)]' : 'bg-background/50 border-border hover:bg-muted/50'}`}
                     >
                       <div className="flex-shrink-0 w-8 text-center font-bold text-lg">
-                        {index === 0 ? <Medal className="w-6 h-6 text-yellow-400 mx-auto" /> :
-                         index === 1 ? <Medal className="w-6 h-6 text-slate-300 mx-auto" /> :
-                         index === 2 ? <Medal className="w-6 h-6 text-amber-600 mx-auto" /> :
+                        {index === 0 ? <Medal className="w-6 h-6 text-yellow-700 mx-auto" /> :
+                         index === 1 ? <Medal className="w-6 h-6 text-stone-600 mx-auto" /> :
+                         index === 2 ? <Medal className="w-6 h-6 text-amber-700 mx-auto" /> :
                          <span className="text-muted-foreground">#{index + 1}</span>}
                       </div>
 
@@ -116,7 +116,7 @@ export function CitizenLeaderboardPanel({ userId, isOpen, onClose }: { userId: s
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className={`text-sm font-semibold truncate ${isCurrentUser ? 'text-[#0969da]' : 'text-foreground'}`}>
+                          <p className={`text-sm font-semibold truncate ${isCurrentUser ? 'text-[#2f3fa8]' : 'text-foreground'}`}>
                             {user.name} {isCurrentUser && '(You)'}
                           </p>
                         </div>
@@ -129,7 +129,7 @@ export function CitizenLeaderboardPanel({ userId, isOpen, onClose }: { userId: s
 
                       <div className="text-right">
                         <p className="text-lg font-bold text-foreground flex items-center justify-end gap-1">
-                          {user.karma_score} <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                          {user.karma_score} <Star className="w-4 h-4 text-amber-700 fill-amber-400" />
                         </p>
                         <p className="text-[10px] text-muted-foreground uppercase font-semibold">Karma</p>
                       </div>
@@ -160,7 +160,7 @@ export function CitizenLeaderboardPanel({ userId, isOpen, onClose }: { userId: s
                       </div>
                       {currentUserLevel.level < 4 && (
                         <p className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
-                          <ArrowUp className="w-3 h-3 text-[#0969da]" />
+                          <ArrowUp className="w-3 h-3 text-[#2f3fa8]" />
                           {currentUserLevel.max - currentUserStats.karma_score} to {currentUserLevel.next}
                         </p>
                       )}
@@ -170,7 +170,7 @@ export function CitizenLeaderboardPanel({ userId, isOpen, onClose }: { userId: s
                         initial={{ width: 0 }}
                         animate={{ width: `${karmaProgress}%` }}
                         transition={{ duration: 1, ease: 'easeOut' }}
-                        className={`h-full bg-gradient-to-r ${currentUserLevel.level === 4 ? 'from-purple-500 to-purple-400' : 'from-[#0969da] to-blue-400'}`}
+                        className={`h-full bg-gradient-to-r ${currentUserLevel.level === 4 ? 'from-purple-500 to-purple-400' : 'from-[#17140f] to-blue-400'}`}
                       />
                     </div>
                   </div>

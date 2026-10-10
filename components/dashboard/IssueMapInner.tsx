@@ -63,7 +63,7 @@ function makePinIcon(category: string, count?: number, status?: string): L.DivIc
       "></div>`
     : ''
 
-  const border = isCommunityReview ? '2px solid #ea580c' : '2px solid #0d1117'
+  const border = isCommunityReview ? '2px solid #ea580c' : '2px solid #f5f0e1'
 
   return L.divIcon({
     className: '',
@@ -110,14 +110,14 @@ const USER_ICON = L.divIcon({
     <div style="position:relative;width:20px;height:20px">
       <div style="
         position:absolute;inset:0;border-radius:50%;
-        background:rgba(45,164,78,0.2);
+        background:rgba(127,145,69,0.2);
         animation:pulse-ring 2s infinite;
       "></div>
       <div style="
         position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
         width:12px;height:12px;border-radius:50%;
-        background:#2da44e;border:2px solid #0d1117;
-        box-shadow:0 0 8px rgba(45,164,78,0.6);
+        background:#7f9145;border:2px solid #f5f0e1;
+        box-shadow:0 0 8px rgba(127,145,69,0.6);
       "></div>
     </div>
     <style>
@@ -240,11 +240,11 @@ function IssueLayer({
       marker.bindPopup(
         `<div style="
           font-family:system-ui,sans-serif;
-          background:#161b22;color:#e6edf3;
-          border:1px solid #30363d;border-radius:10px;
+          background:#fbf8ef;color:#17140f;
+          border:1px solid #d8d0b8;border-radius:10px;
           padding:10px 14px;min-width:180px;
         ">
-          <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">
+          <div style="font-size:11px;font-weight:700;color:#6b6554;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">
             ${cluster.issues.length} Clustered Reports
           </div>
           <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">
@@ -252,10 +252,10 @@ function IssueLayer({
           .slice(0, 5)
           .map(
             (i) =>
-              `<li style="font-size:12px;font-weight:600;color:#e6edf3;padding:3px 0;border-bottom:1px solid #21262d">${i.title || i.category}</li>`
+              `<li style="font-size:12px;font-weight:600;color:#17140f;padding:3px 0;border-bottom:1px solid #e3dcc6">${i.title || i.category}</li>`
           )
           .join('')}
-            ${cluster.issues.length > 5 ? `<li style="font-size:11px;color:#8b949e;padding-top:2px">+${cluster.issues.length - 5} more…</li>` : ''}
+            ${cluster.issues.length > 5 ? `<li style="font-size:11px;color:#6b6554;padding-top:2px">+${cluster.issues.length - 5} more…</li>` : ''}
           </ul>
         </div>`,
         { className: 'civic-popup' }
@@ -273,8 +273,8 @@ function IssueLayer({
       marker.bindPopup(
         `<div style="
           font-family:system-ui,sans-serif;
-          background:#161b22;color:#e6edf3;
-          border:1px solid #30363d;border-radius:10px;
+          background:#fbf8ef;color:#17140f;
+          border:1px solid #d8d0b8;border-radius:10px;
           padding:10px 14px;min-width:160px;max-width:220px;
         ">
           <div style="
@@ -292,8 +292,8 @@ function IssueLayer({
                 ">Pending Verification</div>`
           : ''
         }
-          <div style="font-size:12px;font-weight:700;color:#e6edf3;line-height:1.4">${issue.title || issue.category}</div>
-          <div style="font-size:11px;color:#8b949e;margin-top:4px">${issue.address || ''}</div>
+          <div style="font-size:12px;font-weight:700;color:#17140f;line-height:1.4">${issue.title || issue.category}</div>
+          <div style="font-size:11px;color:#6b6554;margin-top:4px">${issue.address || ''}</div>
         </div>`,
         { className: 'civic-popup' }
       )
@@ -304,7 +304,7 @@ function IssueLayer({
     if (userLocation) {
       L.marker([userLocation.lat, userLocation.lng], { icon: USER_ICON })
         .bindPopup(
-          `<div style="font-family:system-ui,sans-serif;background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600">📍 Your Location</div>`,
+          `<div style="font-family:system-ui,sans-serif;background:#fbf8ef;color:#17140f;border:1px solid #d8d0b8;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600">📍 Your Location</div>`,
           { className: 'civic-popup' }
         )
         .addTo(lg)
@@ -366,8 +366,8 @@ function LocateMeControl() {
       style={{
         width: 36,
         height: 36,
-        background: '#161b22',
-        border: '2px solid #30363d',
+        background: '#fbf8ef',
+        border: '2px solid #d8d0b8',
         borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
@@ -376,11 +376,11 @@ function LocateMeControl() {
         marginBottom: 10,
         marginRight: 10,
         boxShadow: '0 2px 10px rgba(0,0,0,0.55)',
-        color: locating ? '#8b949e' : '#2da44e',
+        color: locating ? '#6b6554' : '#7f9145',
         transition: 'color 0.2s, box-shadow 0.2s',
         outline: 'none',
       }}
-      onMouseEnter={e => { if (!locating) (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(45,164,78,0.25), 0 2px 10px rgba(0,0,0,0.55)' }}
+      onMouseEnter={e => { if (!locating) (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(127,145,69,0.25), 0 2px 10px rgba(0,0,0,0.55)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(0,0,0,0.55)' }}
     >
       {locating ? (
@@ -416,8 +416,7 @@ export default function IssueMapInner({ issues, userLocation }: Props) {
     <>
       {/* Inject global styles for Leaflet popup chrome */}
       <style>{`
-        .leaflet-container { background: #0d1117 !important; }
-        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        .leaflet-container { background: #f5f0e1 !important; }
         .civic-popup .leaflet-popup-content-wrapper {
           background: transparent !important;
           border: none !important;
@@ -430,19 +429,19 @@ export default function IssueMapInner({ issues, userLocation }: Props) {
         }
         .civic-popup .leaflet-popup-tip-container { display: none; }
         .leaflet-control-attribution {
-          background: rgba(13,17,23,0.8) !important;
-          color: #8b949e !important;
+          background: rgba(245,240,225,0.9) !important;
+          color: #6b6554 !important;
           font-size: 9px !important;
           border-radius: 6px 0 0 0 !important;
         }
-        .leaflet-control-attribution a { color: #8b949e !important; }
+        .leaflet-control-attribution a { color: #6b6554 !important; }
         .leaflet-control-zoom a {
-          background: #161b22 !important;
-          color: #e6edf3 !important;
-          border-color: #30363d !important;
+          background: #fbf8ef !important;
+          color: #17140f !important;
+          border-color: #d8d0b8 !important;
         }
         .leaflet-control-zoom a:hover {
-          background: #21262d !important;
+          background: #e3dcc6 !important;
         }
         .lp-locate-control { background: transparent !important; border: none !important; }
         @keyframes lp-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }

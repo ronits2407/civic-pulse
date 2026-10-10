@@ -41,7 +41,7 @@ function makePinIcon(color: string, number?: number): L.DivIcon {
           background:${color};
           border-radius:50% 50% 50% 0;
           transform:rotate(-45deg);
-          border:2px solid #0d1117;
+          border:2px solid #f5f0e1;
           box-shadow:0 2px 8px rgba(0,0,0,0.5);
           display:flex;align-items:center;justify-content:center;
           position:relative;
@@ -63,14 +63,14 @@ const USER_ICON = L.divIcon({
     <div style="position:relative;width:20px;height:20px">
       <div style="
         position:absolute;inset:0;border-radius:50%;
-        background:rgba(45,164,78,0.2);
+        background:rgba(127,145,69,0.2);
         animation:pulse-ring 2s infinite;
       "></div>
       <div style="
         position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
         width:12px;height:12px;border-radius:50%;
-        background:#2da44e;border:2px solid #0d1117;
-        box-shadow:0 0 8px rgba(45,164,78,0.6);
+        background:#7f9145;border:2px solid #f5f0e1;
+        box-shadow:0 0 8px rgba(127,145,69,0.6);
       "></div>
     </div>
     <style>
@@ -126,9 +126,9 @@ function RouteLayer({ clusters, selectedClusterId, userLocation, activeRoute }: 
         })
 
         marker.bindPopup(`
-          <div style="font-family:system-ui,sans-serif;background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:10px;padding:8px;font-size:11px;">
+          <div style="font-family:system-ui,sans-serif;background:#fbf8ef;color:#17140f;border:1px solid #d8d0b8;border-radius:10px;padding:8px;font-size:11px;">
              <strong>${issue.title || issue.category}</strong><br/>
-             <span style="color:#8b949e">${issue.address}</span>
+             <span style="color:#6b6554">${issue.address}</span>
           </div>
         `, { className: 'civic-popup' })
 
@@ -171,8 +171,7 @@ export default function RoutePlannerMapInner(props: Props) {
   return (
     <>
       <style>{`
-        .leaflet-container { background: #0d1117 !important; }
-        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        .leaflet-container { background: #f5f0e1 !important; }
         .civic-popup .leaflet-popup-content-wrapper {
           background: transparent !important;
           border: none !important;

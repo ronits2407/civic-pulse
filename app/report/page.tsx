@@ -315,7 +315,7 @@ export default function ReportPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label htmlFor="issue-description" className="block text-sm font-semibold text-foreground">Describe problem</label>
-              <span className="text-xs text-[#0969da] font-medium bg-[#0969da]/10 px-2 py-0.5 rounded-full flex items-center">
+              <span className="text-xs text-[#2f3fa8] font-medium bg-sky/40 px-2 py-0.5 rounded-full flex items-center">
                 🌐 Multi-language supported
               </span>
             </div>
@@ -325,14 +325,14 @@ export default function ReportPage() {
                 placeholder="Describe the problem... e.g. There's a large pothole on MG Road, it damaged my bike yesterday"
                 value={text}
                 onChange={e => setText(e.target.value)}
-                className="bg-card border-border text-foreground placeholder:text-muted-foreground min-h-[150px] resize-none rounded-xl focus-visible:ring-1 focus-visible:ring-[#0969da] pr-14 pb-14"
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground min-h-[150px] resize-none rounded-xl focus-visible:ring-1 focus-visible:ring-[#17140f]/40 pr-14 pb-14"
               />
               <button
                 type="button"
                 onClick={toggleListening}
                 className={`absolute bottom-3 right-3 p-3 rounded-full transition-colors flex items-center justify-center ${
                   isListening 
-                    ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' 
+                    ? 'bg-blush/40 text-red-700 hover:bg-blush/60'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                 }`}
                 title={isListening ? 'Stop listening' : 'Start voice reporting'}
@@ -359,7 +359,7 @@ export default function ReportPage() {
                   </div>
                   <Button
                     variant="outline"
-                    className="w-full border-red-500/50 text-red-500 hover:bg-red-500/10 font-semibold transition-colors"
+                    className="w-full border-rose-700/30 text-red-700 hover:bg-blush/40 font-semibold transition-colors"
                     onClick={() => { setImageFile(null); setImagePreview(null) }}
                   >
                     Remove Photo
@@ -372,7 +372,7 @@ export default function ReportPage() {
                   onDrop={handleDrop}
                   className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-4 transition-all duration-200 ${
                     isDragging
-                      ? 'border-[#0969da] bg-[#0969da]/10'
+                      ? 'border-[#17140f] bg-sky/40'
                       : 'border-border hover:bg-muted/10'
                   }`}
                 >
@@ -421,7 +421,7 @@ export default function ReportPage() {
                   </div>
                   <Button
                     variant="outline"
-                    className="w-full border-red-500/50 text-red-500 hover:bg-red-500/10 font-semibold transition-colors"
+                    className="w-full border-rose-700/30 text-red-700 hover:bg-blush/40 font-semibold transition-colors"
                     onClick={() => { setVideoFile(null); setVideoPreview(null) }}
                   >
                     Remove Video
@@ -478,13 +478,13 @@ export default function ReportPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.2 }}
-                  className="flex items-start gap-3 bg-[#2da44e]/8 border border-[#2da44e]/25 rounded-xl px-4 py-3"
+                  className="flex items-start gap-3 bg-olive/30 border border-black/15 rounded-xl px-4 py-3"
                 >
-                  <div className="mt-0.5 w-7 h-7 rounded-full bg-[#2da44e]/15 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-4 h-4 text-[#2da44e]" />
+                  <div className="mt-0.5 w-7 h-7 rounded-full bg-olive/30 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4 text-[#4d6a1f]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-[#2da44e] mb-0.5">
+                    <p className="text-xs font-semibold text-[#4d6a1f] mb-0.5">
                       {locationMode === 'gps' ? 'GPS Location Captured' : 'Map Location Set'}
                     </p>
                     <p className="text-sm text-foreground font-medium truncate">{coordinates.address}</p>
@@ -515,13 +515,13 @@ export default function ReportPage() {
                     onClick={handleUseCurrentLocation}
                     disabled={isGettingGPS}
                     aria-label="Use current GPS location"
-                    className="group relative flex flex-col items-center gap-3 rounded-xl border border-border bg-card hover:border-[#0969da]/50 hover:bg-[#0969da]/5 transition-all duration-200 p-5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none"
+                    className="group relative flex flex-col items-center gap-3 rounded-xl border border-border bg-card hover:border-black/15 hover:bg-sky/40 transition-all duration-200 p-5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-[#17140f]/40 focus-visible:outline-none"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#0969da]/10 border border-[#0969da]/20 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                    <div className="w-12 h-12 rounded-full bg-sky/40 border border-black/15 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
                       {isGettingGPS ? (
-                        <Loader2 className="w-5 h-5 text-[#0969da] animate-spin" />
+                        <Loader2 className="w-5 h-5 text-[#2f3fa8] animate-spin" />
                       ) : (
-                        <Navigation className="w-5 h-5 text-[#0969da]" />
+                        <Navigation className="w-5 h-5 text-[#2f3fa8]" />
                       )}
                     </div>
                     <div className="text-center">
@@ -537,10 +537,10 @@ export default function ReportPage() {
                     type="button"
                     onClick={() => setIsMapOpen(true)}
                     aria-label="Choose location on map"
-                    className="group relative flex flex-col items-center gap-3 rounded-xl border border-border bg-card hover:border-[#2da44e]/50 hover:bg-[#2da44e]/5 transition-all duration-200 p-5 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#2da44e] focus-visible:outline-none"
+                    className="group relative flex flex-col items-center gap-3 rounded-xl border border-border bg-card hover:border-black/15 hover:bg-olive/30 transition-all duration-200 p-5 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#17140f]/40 focus-visible:outline-none"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#2da44e]/10 border border-[#2da44e]/20 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                      <Map className="w-5 h-5 text-[#2da44e]" />
+                    <div className="w-12 h-12 rounded-full bg-olive/30 border border-black/15 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                      <Map className="w-5 h-5 text-[#4d6a1f]" />
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-semibold text-foreground leading-snug">Choose on map</p>
@@ -552,7 +552,7 @@ export default function ReportPage() {
             </AnimatePresence>
           </div>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-red-700 text-sm">{error}</p>}
 
           {/* Submit */}
           <div className="pt-6 border-t border-border flex justify-end">
@@ -560,7 +560,7 @@ export default function ReportPage() {
               onClick={handleSubmit}
               disabled={!text.trim() || isSubmitting}
               size="lg"
-              className="bg-[#2da44e] hover:bg-[#2c974b] text-white disabled:opacity-40 font-semibold px-8 rounded-xl"
+              className="bg-[#17140f] hover:bg-[#17140f] text-white disabled:opacity-40 font-semibold px-8 rounded-xl"
             >
               {isSubmitting ? (
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />

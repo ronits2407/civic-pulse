@@ -13,9 +13,9 @@ import { MarkdownRenderer } from '@/components/ui/markdown'
 const Agent5PredictiveMapInner = dynamic(() => import('./Agent5PredictiveMapInner'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-[#0d1117] rounded-xl">
+    <div className="w-full h-full flex items-center justify-center bg-[#fbf8ef] rounded-xl">
       <div className="flex flex-col items-center gap-3">
-        <Loader2 className="w-6 h-6 text-[#0969da] animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#2f3fa8] animate-spin" />
         <span className="text-xs text-muted-foreground font-medium">Loading map engine…</span>
       </div>
     </div>
@@ -166,7 +166,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
         <Button
           variant="ghost"
           size="icon"
-          className="bg-[#0d1117]/80 border border-[#30363d] backdrop-blur text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="bg-[#fbf8ef]/80 border border-border backdrop-blur text-muted-foreground hover:text-foreground hover:bg-muted"
           onClick={fetchClusters}
           disabled={isFetchingInitial || step !== 'idle'}
           title="Refresh Clusters"
@@ -193,7 +193,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
             transition: 'color 0.2s, box-shadow 0.2s',
             outline: 'none',
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(45,164,78,0.25), 0 2px 10px rgba(0,0,0,0.55)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(127,145,69,0.25), 0 2px 10px rgba(0,0,0,0.55)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(0,0,0,0.55)' }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -217,7 +217,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
         <div className="w-full sm:w-[400px] border-r border-border bg-card/60 flex flex-col h-full z-10 shrink-0">
           <div className="p-4 border-b border-border bg-card/80">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <BrainCircuit className="w-4 h-4 text-[#0969da]" /> Predictive Hotspot Intelligence
+              <BrainCircuit className="w-4 h-4 text-[#2f3fa8]" /> Predictive Hotspot Intelligence
             </h2>
             <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
               Agent 5 utilizes DBSCAN clustering on historical reports, applying Gemini Flash's reasoning to generate early-warning alerts for civic issues.
@@ -231,7 +231,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-foreground uppercase tracking-wider">Lookback Period</label>
                   <select
-                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-[#0969da]"
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-[#17140f]/40"
                     value={lookbackDays}
                     onChange={(e) => setLookbackDays(Number(e.target.value))}
                     disabled={step !== 'idle'}
@@ -244,7 +244,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
                 </div>
                 
                 {error && (
-                  <div className="text-rose-400 text-xs p-3 bg-rose-500/10 rounded-lg border border-rose-500/20">
+                  <div className="text-rose-700 text-xs p-3 bg-blush/40 rounded-lg border border-rose-700/30">
                     {error}
                   </div>
                 )}
@@ -252,7 +252,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
                 <Button 
                   onClick={handleRunAnalysis}
                   disabled={isFetchingInitial || clusters.length === 0}
-                  className="w-full bg-[#0969da] hover:bg-blue-600 text-white font-semibold text-xs h-10 disabled:opacity-50"
+                  className="w-full bg-[#17140f] hover:bg-[#17140f] text-white font-semibold text-xs h-10 disabled:opacity-50"
                 >
                   {isFetchingInitial ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gathering issues...</>
@@ -273,7 +273,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
               <div className="space-y-4">
                 <div className="bg-background border border-border rounded-xl p-3 space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'fetching' ? 'bg-[#0969da]/20 text-[#0969da] animate-pulse' : 'bg-[#2da44e]/20 text-[#2da44e]'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'fetching' ? 'bg-sky/40 text-[#2f3fa8] animate-pulse' : 'bg-olive/30 text-[#4d6a1f]'}`}>
                       {step === 'fetching' ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldAlert className="w-3 h-3" />}
                     </div>
                     <div className="flex-1">
@@ -285,7 +285,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'analyzing' ? 'bg-amber-500/20 text-amber-500 animate-pulse' : step === 'done' ? 'bg-[#2da44e]/20 text-[#2da44e]' : 'bg-muted text-muted-foreground'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'analyzing' ? 'bg-sun/60 text-amber-700 animate-pulse' : step === 'done' ? 'bg-olive/30 text-[#4d6a1f]' : 'bg-muted text-muted-foreground'}`}>
                       {step === 'analyzing' ? <Activity className="w-3 h-3 animate-spin" /> : step === 'done' ? <ShieldAlert className="w-3 h-3" /> : <Loader2 className="w-3 h-3" />}
                     </div>
                     <div className="flex-1">
@@ -301,15 +301,15 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
                   <div className="mt-4 space-y-2">
                     <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center justify-between">
                       Generated Alerts
-                      <span className="bg-[#0969da]/20 text-[#0969da] px-1.5 py-0.5 rounded text-[9px]">{results.length}</span>
+                      <span className="bg-sky/40 text-[#2f3fa8] px-1.5 py-0.5 rounded text-[9px]">{results.length}</span>
                     </h4>
                     <div className="space-y-2.5">
                       {results.map((alert, idx) => (
                         <div key={idx} className="bg-background border border-border rounded-lg p-3 relative overflow-hidden group">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+                          <div className="absolute top-0 left-0 w-1 h-full bg-sun-deep"></div>
                           <div className="pl-2">
                             <div className="flex items-start justify-between gap-2 mb-1">
-                              <h5 className="text-xs font-bold text-amber-400 capitalize flex items-center gap-1.5">
+                              <h5 className="text-xs font-bold text-amber-700 capitalize flex items-center gap-1.5">
                                 <AlertTriangle className="w-3.5 h-3.5" />
                                 {alert.predicted_category.replace(/_/g, ' ')}
                               </h5>
@@ -331,7 +331,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
                 {step === 'done' && (
                   <Button 
                     onClick={() => setStep('idle')}
-                    className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs h-9 mt-4"
+                    className="w-full bg-stone-300 hover:bg-stone-300 text-white font-semibold text-xs h-9 mt-4"
                   >
                     Run New Analysis
                   </Button>
@@ -348,10 +348,10 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
              {mapArea}
              
              {step === 'analyzing' && currentClusterId && (
-               <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-[#0d1117]/90 border border-[#0969da]/30 shadow-[0_0_15px_rgba(9,105,218,0.2)] backdrop-blur px-4 py-2 rounded-full flex items-center gap-2">
-                 <Loader2 className="w-4 h-4 text-[#0969da] animate-spin" />
+               <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-[#fbf8ef]/90 border border-black/15 shadow-[0_0_15px_rgba(9,105,218,0.2)] backdrop-blur px-4 py-2 rounded-full flex items-center gap-2">
+                 <Loader2 className="w-4 h-4 text-[#2f3fa8] animate-spin" />
                  <span className="text-xs font-semibold text-white tracking-wide">
-                   Agent 5 examining Hotspot <span className="text-[#0969da] ml-1">{analyzedCount + 1}/{clusters.length}</span>
+                   Agent 5 examining Hotspot <span className="text-[#2f3fa8] ml-1">{analyzedCount + 1}/{clusters.length}</span>
                  </span>
                </div>
              )}

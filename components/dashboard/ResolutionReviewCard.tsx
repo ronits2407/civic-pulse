@@ -108,7 +108,7 @@ export function ResolutionReviewCard({ issueId, onSubmitted }: { issueId: string
       </div>
 
       {summary.viewer.myVerdict && (
-        <p className="text-xs text-emerald-400">You reviewed this fix: {summary.viewer.myVerdict.replace('_', ' ')}.</p>
+        <p className="text-xs text-emerald-700">You reviewed this fix: {summary.viewer.myVerdict.replace('_', ' ')}.</p>
       )}
       {open && !summary.viewer.eligible && summary.viewer.reason && (
         <p className="text-xs text-muted-foreground">{summary.viewer.reason}</p>

@@ -67,37 +67,37 @@ const CATEGORY_DETAILS: Record<string, { icon: any; label: string; color: string
   infrastructure: {
     icon: Wrench,
     label: 'Infrastructure',
-    color: 'text-[#0969da]',
-    bgColor: 'bg-blue-950/40',
-    borderColor: 'border-blue-900/30'
+    color: 'text-[#2f3fa8]',
+    bgColor: 'bg-sky/60',
+    borderColor: 'border-black/10'
   },
   sanitation: {
     icon: Trash2,
     label: 'Sanitation',
-    color: 'text-emerald-400',
-    bgColor: 'bg-emerald-950/40',
-    borderColor: 'border-emerald-900/30'
+    color: 'text-emerald-700',
+    bgColor: 'bg-olive/60',
+    borderColor: 'border-black/10'
   },
   safety: {
     icon: ShieldAlert,
     label: 'Safety',
-    color: 'text-red-400',
-    bgColor: 'bg-red-950/40',
-    borderColor: 'border-red-900/30'
+    color: 'text-red-700',
+    bgColor: 'bg-blush/60',
+    borderColor: 'border-black/10'
   },
   utility: {
     icon: Zap,
     label: 'Utilities',
-    color: 'text-amber-400',
-    bgColor: 'bg-amber-950/40',
-    borderColor: 'border-amber-900/30'
+    color: 'text-amber-700',
+    bgColor: 'bg-sun/60',
+    borderColor: 'border-black/10'
   },
   environment: {
     icon: Leaf,
     label: 'Environment',
-    color: 'text-teal-400',
-    bgColor: 'bg-teal-950/40',
-    borderColor: 'border-teal-900/30'
+    color: 'text-teal-700',
+    bgColor: 'bg-olive/60',
+    borderColor: 'border-black/10'
   }
 }
 
@@ -105,30 +105,30 @@ const CATEGORY_DETAILS: Record<string, { icon: any; label: string; color: string
 const STATUS_DETAILS: Record<string, { label: string; bgClass: string; borderClass: string; textClass: string; dotClass: string }> = {
   open: {
     label: 'Under Review',
-    bgClass: 'bg-blue-950/30',
-    borderClass: 'border-blue-900/30',
-    textClass: 'text-[#0969da]',
-    dotClass: 'bg-blue-500'
+    bgClass: 'bg-sky/60',
+    borderClass: 'border-black/10',
+    textClass: 'text-[#2f3fa8]',
+    dotClass: 'bg-[#5a6fd0]'
   },
   in_progress: {
     label: 'In Progress',
-    bgClass: 'bg-amber-950/30',
-    borderClass: 'border-amber-900/30',
-    textClass: 'text-amber-400',
-    dotClass: 'bg-amber-500'
+    bgClass: 'bg-sun/60',
+    borderClass: 'border-black/10',
+    textClass: 'text-amber-700',
+    dotClass: 'bg-sun-deep'
   },
   resolved: {
     label: 'Resolved',
-    bgClass: 'bg-emerald-950/30',
-    borderClass: 'border-emerald-900/30',
-    textClass: 'text-emerald-400',
-    dotClass: 'bg-emerald-500'
+    bgClass: 'bg-olive/60',
+    borderClass: 'border-black/10',
+    textClass: 'text-emerald-700',
+    dotClass: 'bg-olive-deep'
   },
   false_closure: {
     label: 'Disputed',
-    bgClass: 'bg-rose-950/30',
-    borderClass: 'border-rose-900/30',
-    textClass: 'text-rose-400',
+    bgClass: 'bg-blush/60',
+    borderClass: 'border-black/10',
+    textClass: 'text-rose-700',
     dotClass: 'bg-rose-500'
   },
   closed: {
@@ -136,7 +136,7 @@ const STATUS_DETAILS: Record<string, { label: string; bgClass: string; borderCla
     bgClass: 'bg-card/40',
     borderClass: 'border-border',
     textClass: 'text-muted-foreground',
-    dotClass: 'bg-slate-500'
+    dotClass: 'bg-stone-400'
   }
 }
 
@@ -166,21 +166,21 @@ const getAgentState = (currentStage: string | null, targetStage: string, isDupli
 }
 
 const AgentDot = ({ state }: { state: PipelineState }) => {
-  if (state === 'done') return <div className="absolute -left-[33px] top-0.5 bg-[#2da44e] border-4 border-slate-950 w-4 h-4 rounded-full flex items-center justify-center shadow-md shadow-emerald-500/30" />
-  if (state === 'in_progress') return <div className="absolute -left-[33px] top-0.5 bg-amber-400 border-4 border-slate-950 w-4 h-4 rounded-full flex items-center justify-center shadow-md shadow-amber-500/30 animate-pulse" />
-  if (state === 'failed') return <div className="absolute -left-[33px] top-0.5 bg-rose-500 border-4 border-slate-950 w-4 h-4 rounded-full flex items-center justify-center shadow-md shadow-rose-500/30" />
-  if (state === 'skipped') return <div className="absolute -left-[33px] top-0.5 bg-slate-600 border-4 border-slate-950 w-4 h-4 rounded-full flex items-center justify-center shadow-md shadow-slate-500/30" />
-  return <div className="absolute -left-[33px] top-0.5 bg-slate-800 border-4 border-slate-950 w-4 h-4 rounded-full flex items-center justify-center shadow-md opacity-40" />
+  if (state === 'done') return <div className="absolute -left-[33px] top-0.5 bg-[#17140f] border-4 border-background w-4 h-4 rounded-full flex items-center justify-center shadow-md shadow-black/10" />
+  if (state === 'in_progress') return <div className="absolute -left-[33px] top-0.5 bg-sun-deep border-4 border-background w-4 h-4 rounded-full flex items-center justify-center shadow-md shadow-black/10 animate-pulse" />
+  if (state === 'failed') return <div className="absolute -left-[33px] top-0.5 bg-rose-500 border-4 border-background w-4 h-4 rounded-full flex items-center justify-center shadow-md shadow-black/10" />
+  if (state === 'skipped') return <div className="absolute -left-[33px] top-0.5 bg-stone-400 border-4 border-background w-4 h-4 rounded-full flex items-center justify-center shadow-md shadow-black/10" />
+  return <div className="absolute -left-[33px] top-0.5 bg-stone-300 border-4 border-background w-4 h-4 rounded-full flex items-center justify-center shadow-md opacity-40" />
 }
 
 const AgentStatusBadge = ({ state, issueId, onRetry }: { state: PipelineState, issueId: string, onRetry: (issueId: string) => void }) => {
   if (state === 'failed') {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-[9px] font-bold text-rose-400 bg-rose-500/10 px-1.5 py-0.2 rounded border border-rose-500/20 uppercase tracking-wide leading-none">FAILED</span>
+        <span className="text-[9px] font-bold text-rose-700 bg-blush/40 px-1.5 py-0.2 rounded border border-rose-700/30 uppercase tracking-wide leading-none">FAILED</span>
         <button
           onClick={() => onRetry(issueId)}
-          className="text-[9px] font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-600 transition-colors uppercase cursor-pointer"
+          className="text-[9px] font-bold text-stone-600 bg-stone-300 hover:bg-stone-300 px-2 py-0.5 rounded border border-black/15 transition-colors uppercase cursor-pointer"
         >
           Retry
         </button>
@@ -188,13 +188,13 @@ const AgentStatusBadge = ({ state, issueId, onRetry }: { state: PipelineState, i
     )
   }
   if (state === 'done') {
-    return <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20 uppercase tracking-wide leading-none">DONE</span>
+    return <span className="text-[9px] font-bold text-emerald-700 bg-olive/40 px-1.5 py-0.2 rounded border border-olive-deep/40 uppercase tracking-wide leading-none">DONE</span>
   }
   if (state === 'skipped') {
-    return <span className="text-[9px] font-bold text-slate-400 bg-slate-500/10 px-1.5 py-0.2 rounded border border-slate-500/20 uppercase tracking-wide leading-none">SKIPPED</span>
+    return <span className="text-[9px] font-bold text-stone-600 bg-stone-400 px-1.5 py-0.2 rounded border border-black/10 uppercase tracking-wide leading-none">SKIPPED</span>
   }
   if (state === 'in_progress') {
-    return <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20 uppercase tracking-wide flex items-center gap-1"><Loader2 className="w-2.5 h-2.5 animate-spin" /> IN PROGRESS</span>
+    return <span className="text-[9px] font-bold text-amber-700 bg-sun/40 px-1.5 py-0.2 rounded border border-sun-deep/60 uppercase tracking-wide flex items-center gap-1"><Loader2 className="w-2.5 h-2.5 animate-spin" /> IN PROGRESS</span>
   }
   return <span className="text-[9px] font-bold text-muted-foreground bg-muted px-1.5 py-0.2 rounded border border-border uppercase tracking-wide leading-none">PENDING</span>
 }
@@ -234,11 +234,11 @@ function Agent1Visuals({ issue, isRunning }: { issue: Issue, isRunning: boolean 
               <motion.div
                 animate={{ top: ['0%', '100%', '0%'] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute left-0 w-full h-[2px] bg-[#0969da] shadow-[0_0_15px_3px_rgba(9,105,218,0.8)] z-10"
+                className="absolute left-0 w-full h-[2px] bg-[#17140f] shadow-[0_0_15px_3px_rgba(9,105,218,0.8)] z-10"
               />
-              <div className="absolute inset-0 bg-[#0969da]/10 animate-pulse mix-blend-overlay" />
+              <div className="absolute inset-0 bg-sky/40 animate-pulse mix-blend-overlay" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-black/70 text-[#0969da] text-[10px] font-bold px-2 py-1 rounded border border-[#0969da]/50 uppercase tracking-widest backdrop-blur-sm flex items-center gap-1.5">
+                <span className="bg-black/70 text-[#2f3fa8] text-[10px] font-bold px-2 py-1 rounded border border-black/15 uppercase tracking-widest backdrop-blur-sm flex items-center gap-1.5">
                   <Loader2 className="w-3 h-3 animate-spin" /> Scanning Vision Model
                 </span>
               </div>
@@ -251,7 +251,7 @@ function Agent1Visuals({ issue, isRunning }: { issue: Issue, isRunning: boolean 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <div className="flex items-center w-[170px] shrink-0">
             <span className="text-muted-foreground font-semibold">Subcategory:</span>
-            <span className={`ml-1 font-medium capitalize transition-colors flex ${isRunning ? 'text-[#0969da] font-mono' : 'text-muted-foreground'}`}>
+            <span className={`ml-1 font-medium capitalize transition-colors flex ${isRunning ? 'text-[#2f3fa8] font-mono' : 'text-muted-foreground'}`}>
               <AnimatePresence mode="popLayout">
                 <motion.span
                   key={isRunning ? spinCategory : (issue.subcategory || 'N/A')}
@@ -269,7 +269,7 @@ function Agent1Visuals({ issue, isRunning }: { issue: Issue, isRunning: boolean 
 
           <div className="flex items-center gap-1.5">
             <span className="text-muted-foreground font-semibold">Severity Score:</span>
-            <span className={`font-bold transition-colors flex items-center ${isRunning ? 'text-[#0969da] font-mono' : (issue.severity >= 7 ? 'text-rose-500' : issue.severity >= 4 ? 'text-amber-500' : 'text-emerald-500')}`}>
+            <span className={`font-bold transition-colors flex items-center ${isRunning ? 'text-[#2f3fa8] font-mono' : (issue.severity >= 7 ? 'text-rose-700' : issue.severity >= 4 ? 'text-amber-700' : 'text-emerald-700')}`}>
               <AnimatePresence mode="popLayout">
                 <motion.span
                   key={isRunning ? spinSeverity : issue.severity}
@@ -286,7 +286,7 @@ function Agent1Visuals({ issue, isRunning }: { issue: Issue, isRunning: boolean 
             </span>
             <div className="w-16 bg-background rounded-full h-1.5 border border-border overflow-hidden shrink-0 ml-1">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${isRunning ? 'bg-[#0969da]' : (issue.severity >= 7 ? 'bg-rose-500' : issue.severity >= 4 ? 'bg-amber-500' : 'bg-emerald-500')}`}
+                className={`h-full rounded-full transition-all duration-300 ${isRunning ? 'bg-[#17140f]' : (issue.severity >= 7 ? 'bg-rose-500' : issue.severity >= 4 ? 'bg-sun-deep' : 'bg-olive-deep')}`}
                 style={{ width: `${isRunning ? spinSeverity * 10 : (issue.severity || 0) * 10}%` }}
               />
             </div>
@@ -294,8 +294,8 @@ function Agent1Visuals({ issue, isRunning }: { issue: Issue, isRunning: boolean 
         </div>
 
         {imageAnalysisText && !isRunning && (
-          <div className="mt-4 bg-[#0969da]/10 border border-[#0969da]/30 rounded-xl p-4 sm:p-5">
-            <span className="text-[11px] font-bold text-[#0969da] uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
+          <div className="mt-4 bg-sky/40 border border-black/15 rounded-xl p-4 sm:p-5">
+            <span className="text-[11px] font-bold text-[#2f3fa8] uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
               <Sparkles className="w-4 h-4" /> Visual Analysis
             </span>
             <MarkdownRenderer content={imageAnalysisText} />
@@ -318,11 +318,11 @@ function Agent3Visuals({ isRunning, issue }: { isRunning: boolean, issue: any })
 
         {/* Step 1: Weather */}
         <div className={`flex flex-col items-center text-center gap-2 shrink-0 transition-opacity duration-300 w-24 ${skipWeather ? 'opacity-50' : 'opacity-100'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isRunning ? 'bg-[#0969da]/20 text-[#0969da] animate-pulse ring-2 ring-[#0969da]/50' : skipWeather ? 'bg-muted/50 text-muted-foreground ring-1 ring-border' : 'bg-emerald-500/20 text-emerald-500 ring-1 ring-emerald-500/50'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isRunning ? 'bg-sky/40 text-[#2f3fa8] animate-pulse ring-2 ring-[#17140f]/40' : skipWeather ? 'bg-muted/50 text-muted-foreground ring-1 ring-border' : 'bg-olive/60 text-emerald-700 ring-1 ring-emerald-500/50'}`}>
             {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : skipWeather ? <MinusCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
           </div>
           <div>
-            <span className={`text-[11px] font-mono block ${isRunning ? 'text-[#0969da]' : skipWeather ? 'text-muted-foreground' : 'text-emerald-500'}`}>
+            <span className={`text-[11px] font-mono block ${isRunning ? 'text-[#2f3fa8]' : skipWeather ? 'text-muted-foreground' : 'text-emerald-700'}`}>
               {skipWeather ? 'Weather Call Skipped' : 'Check Open-Meteo'}
             </span>
           </div>
@@ -330,16 +330,16 @@ function Agent3Visuals({ isRunning, issue }: { isRunning: boolean, issue: any })
 
         {/* Progress Line 1 */}
         <div className="hidden sm:block h-[2px] flex-1 bg-border/50 relative rounded-full overflow-hidden">
-          <div className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ${isRunning ? 'w-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-[#0969da] to-transparent' : 'w-full bg-emerald-500'}`} />
+          <div className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ${isRunning ? 'w-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-[#17140f] to-transparent' : 'w-full bg-olive-deep'}`} />
         </div>
 
         {/* Step 2: Web Search */}
         <div className={`flex flex-col items-center text-center gap-2 shrink-0 transition-opacity duration-300 w-24 ${skipWebSearch ? 'opacity-50' : 'opacity-100'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isRunning ? 'bg-amber-500/20 text-amber-500 animate-pulse ring-2 ring-amber-500/50' : skipWebSearch ? 'bg-muted/50 text-muted-foreground ring-1 ring-border' : 'bg-emerald-500/20 text-emerald-500 ring-1 ring-emerald-500/50'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isRunning ? 'bg-sun/60 text-amber-700 animate-pulse ring-2 ring-amber-500/50' : skipWebSearch ? 'bg-muted/50 text-muted-foreground ring-1 ring-border' : 'bg-olive/60 text-emerald-700 ring-1 ring-emerald-500/50'}`}>
             {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : skipWebSearch ? <MinusCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
           </div>
           <div>
-            <span className={`text-[11px] font-mono block ${isRunning ? 'text-amber-500' : skipWebSearch ? 'text-muted-foreground' : 'text-emerald-500'}`}>
+            <span className={`text-[11px] font-mono block ${isRunning ? 'text-amber-700' : skipWebSearch ? 'text-muted-foreground' : 'text-emerald-700'}`}>
               {skipWebSearch ? 'Web Search Skipped' : 'Web Search'}
             </span>
           </div>
@@ -347,16 +347,16 @@ function Agent3Visuals({ isRunning, issue }: { isRunning: boolean, issue: any })
 
         {/* Progress Line 2 */}
         <div className="hidden sm:block h-[2px] flex-1 bg-border/50 relative rounded-full overflow-hidden">
-          <div className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ${isRunning ? 'w-full animate-[shimmer_1.5s_infinite_0.2s] bg-gradient-to-r from-transparent via-amber-500 to-transparent' : 'w-full bg-emerald-500'}`} />
+          <div className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ${isRunning ? 'w-full animate-[shimmer_1.5s_infinite_0.2s] bg-gradient-to-r from-transparent via-amber-500 to-transparent' : 'w-full bg-olive-deep'}`} />
         </div>
 
         {/* Step 3: Synthesis */}
         <div className="flex flex-col items-center text-center gap-2 shrink-0 transition-opacity duration-300 opacity-100 w-24">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isRunning ? 'bg-purple-500/20 text-purple-500 animate-pulse ring-2 ring-purple-500/50' : 'bg-emerald-500/20 text-emerald-500 ring-1 ring-emerald-500/50'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isRunning ? 'bg-blush/60 text-purple-700 animate-pulse ring-2 ring-purple-500/50' : 'bg-olive/60 text-emerald-700 ring-1 ring-emerald-500/50'}`}>
             {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           </div>
           <div>
-            <span className={`text-[11px] font-mono block ${isRunning ? 'text-purple-500' : 'text-emerald-500'}`}>
+            <span className={`text-[11px] font-mono block ${isRunning ? 'text-purple-700' : 'text-emerald-700'}`}>
               Synthesize Score
             </span>
           </div>
@@ -374,11 +374,11 @@ function Agent4Visuals({ isRunning }: { isRunning: boolean }) {
 
         {/* Step 1: SOP Search */}
         <div className="flex flex-col items-center text-center gap-2 shrink-0 transition-opacity duration-300 opacity-100 w-24">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${isRunning ? 'bg-teal-500/20 text-teal-400 border-teal-500/50 shadow-[0_0_10px_rgba(45,212,191,0.3)] animate-pulse' : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/50'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${isRunning ? 'bg-olive/60 text-teal-700 border-olive-deep/40 shadow-[0_0_10px_rgba(45,212,191,0.3)] animate-pulse' : 'bg-olive/60 text-emerald-700 border-olive-deep/40'}`}>
             {isRunning ? <Database className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           </div>
           <div>
-            <span className={`text-[11px] font-mono block ${isRunning ? 'text-teal-400' : 'text-emerald-500'}`}>
+            <span className={`text-[11px] font-mono block ${isRunning ? 'text-teal-700' : 'text-emerald-700'}`}>
               Knowledge Base
             </span>
           </div>
@@ -386,16 +386,16 @@ function Agent4Visuals({ isRunning }: { isRunning: boolean }) {
 
         {/* Progress Line 1 */}
         <div className="hidden sm:block h-[2px] flex-1 bg-border/50 relative rounded-full overflow-hidden">
-          <div className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ${isRunning ? 'w-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-teal-500 to-transparent' : 'w-full bg-emerald-500'}`} />
+          <div className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ${isRunning ? 'w-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-teal-500 to-transparent' : 'w-full bg-olive-deep'}`} />
         </div>
 
         {/* Step 2: Brief Drafting */}
         <div className="flex flex-col items-center text-center gap-2 shrink-0 transition-opacity duration-300 opacity-100 w-24">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${isRunning ? 'bg-[#0969da]/20 text-[#0969da] border-[#0969da]/50 shadow-[0_0_10px_rgba(9,105,218,0.3)] animate-pulse' : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/50'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${isRunning ? 'bg-sky/40 text-[#2f3fa8] border-black/15 shadow-[0_0_10px_rgba(9,105,218,0.3)] animate-pulse' : 'bg-olive/60 text-emerald-700 border-olive-deep/40'}`}>
             {isRunning ? <FileText className="w-4 h-4 animate-pulse" /> : <CheckCircle2 className="w-4 h-4" />}
           </div>
           <div>
-            <span className={`text-[11px] font-mono block ${isRunning ? 'text-[#0969da]' : 'text-emerald-500'}`}>
+            <span className={`text-[11px] font-mono block ${isRunning ? 'text-[#2f3fa8]' : 'text-emerald-700'}`}>
               Drafting Brief
             </span>
           </div>
@@ -403,16 +403,16 @@ function Agent4Visuals({ isRunning }: { isRunning: boolean }) {
 
         {/* Progress Line 2 */}
         <div className="hidden sm:block h-[2px] flex-1 bg-border/50 relative rounded-full overflow-hidden">
-          <div className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ${isRunning ? 'w-full animate-[shimmer_1.5s_infinite_0.2s] bg-gradient-to-r from-transparent via-[#0969da] to-transparent' : 'w-full bg-emerald-500'}`} />
+          <div className={`absolute left-0 top-0 bottom-0 transition-all duration-1000 ${isRunning ? 'w-full animate-[shimmer_1.5s_infinite_0.2s] bg-gradient-to-r from-transparent via-[#17140f] to-transparent' : 'w-full bg-olive-deep'}`} />
         </div>
 
         {/* Step 3: SLA */}
         <div className="flex flex-col items-center text-center gap-2 shrink-0 transition-opacity duration-300 opacity-100 w-24">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${isRunning ? 'bg-amber-500/20 text-amber-500 border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse' : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/50'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${isRunning ? 'bg-sun/60 text-amber-700 border-sun-deep/60 shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse' : 'bg-olive/60 text-emerald-700 border-olive-deep/40'}`}>
             {isRunning ? <Calendar className="w-4 h-4 animate-pulse" /> : <CheckCircle2 className="w-4 h-4" />}
           </div>
           <div>
-            <span className={`text-[11px] font-mono block ${isRunning ? 'text-amber-500' : 'text-emerald-500'}`}>
+            <span className={`text-[11px] font-mono block ${isRunning ? 'text-amber-700' : 'text-emerald-700'}`}>
               Determine SLA
             </span>
           </div>
@@ -656,9 +656,9 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
 
   // Helper for severity displays
   const getSeverityLabel = (s: number) => {
-    if (s >= 7) return { text: 'High Priority', color: 'text-rose-400 border-rose-900/30 bg-rose-950/20' }
-    if (s >= 4) return { text: 'Medium Priority', color: 'text-amber-400 border-amber-900/30 bg-amber-950/20' }
-    return { text: 'Low Priority', color: 'text-emerald-400 border-emerald-900/30 bg-emerald-950/20' }
+    if (s >= 7) return { text: 'High Priority', color: 'text-rose-700 border-black/10 bg-blush/60' }
+    if (s >= 4) return { text: 'Medium Priority', color: 'text-amber-700 border-black/10 bg-sun/60' }
+    return { text: 'Low Priority', color: 'text-emerald-700 border-black/10 bg-olive/60' }
   }
 
   // Helper for SLA days calculation
@@ -672,7 +672,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-blue-500/30 selection:text-blue-200">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-sky/60 selection:text-indigo-700">
       {/* Top Navigation */}
       <nav className="sticky top-0 z-40 bg-background border-b border-border transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -683,7 +683,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                 href="/municipality/dashboard"
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card/60 hover:bg-muted text-xs font-semibold text-foreground transition-colors shadow-sm"
               >
-                <Building2 className="w-3.5 h-3.5 text-[#0969da]" />
+                <Building2 className="w-3.5 h-3.5 text-[#2f3fa8]" />
                 <span className="hidden sm:inline">Municipal Workspace</span>
                 <span className="sm:hidden">Municipal</span>
               </Link>
@@ -707,7 +707,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                 type="button"
                 aria-label="User menu"
               >
-                <Avatar className="w-9 h-9 ring-2 ring-slate-900 shadow-inner hover:ring-4 hover:ring-slate-700/50 hover:shadow-[0_0_12px_rgba(148,163,184,0.25)] hover:scale-105 transition-all duration-200">
+                <Avatar className="w-9 h-9 ring-2 ring-background shadow-inner hover:ring-4 hover:ring-black/10 hover:shadow-[0_0_12px_rgba(148,163,184,0.25)] hover:scale-105 transition-all duration-200">
                   {(user.user_metadata?.avatar_url || user.user_metadata?.picture) && (
                     <AvatarImage
                       src={user.user_metadata.avatar_url || user.user_metadata.picture}
@@ -746,7 +746,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                     <form action={signOut} className="w-full">
                       <button
                         type="submit"
-                        className="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors flex items-center gap-2 font-medium cursor-pointer"
+                        className="w-full text-left px-4 py-2 text-xs text-rose-700 hover:bg-blush/40 transition-colors flex items-center gap-2 font-medium cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5" />
                         Sign Out
@@ -783,17 +783,17 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
               <Button
                 onClick={() => setIsRoutePlannerOpen(true)}
                 variant="outline"
-                className="w-full border-border bg-card hover:bg-muted hover:border-[#0969da]/40 text-foreground font-semibold text-sm h-10 rounded-xl transition-all group px-2"
+                className="w-full border-border bg-card hover:bg-muted hover:border-black/15 text-foreground font-semibold text-sm h-10 rounded-xl transition-all group px-2"
               >
                 <div className="flex items-center justify-center gap-1.5">
-                  <Navigation className="w-4 h-4 text-muted-foreground group-hover:text-[#0969da] transition-colors" />
+                  <Navigation className="w-4 h-4 text-muted-foreground group-hover:text-[#2f3fa8] transition-colors" />
                   <span className="text-xs font-semibold">Route Planner</span>
                 </div>
               </Button>
               <Button
                 onClick={() => setIsAgent5Open(true)}
                 variant="outline"
-                className="w-full border-border bg-card hover:bg-muted hover:border-amber-500/40 text-foreground font-semibold text-sm h-10 rounded-xl transition-all group px-2"
+                className="w-full border-border bg-card hover:bg-muted hover:border-sun-deep/60 text-foreground font-semibold text-sm h-10 rounded-xl transition-all group px-2"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <span className="text-xs font-semibold">Analyse Issues</span>
@@ -811,46 +811,19 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
               <div className="grid grid-cols-2 gap-3">
                 {/* Stat Cards */}
                 {[
-                  {
-                    label: 'Total Reports',
-                    value: totalCount,
-                    icon: CheckSquare,
-                    colorClass: 'text-[#0969da] bg-blue-950/20 border-blue-900/30'
-                  },
-                  {
-                    label: 'Active Issues',
-                    value: activeCount,
-                    icon: Activity,
-                    colorClass: 'text-amber-400 bg-amber-950/20 border-amber-900/30'
-                  },
-                  {
-                    label: 'Resolved Issues',
-                    value: resolvedCount,
-                    icon: CheckCircle2,
-                    colorClass: 'text-emerald-400 bg-emerald-950/20 border-emerald-900/30'
-                  },
-                  {
-                    label: 'Unassigned',
-                    value: issues.filter(i => !i.department_id).length,
-                    icon: AlertCircle,
-                    colorClass: 'text-rose-400 bg-rose-950/20 border-rose-900/30'
-                  }
+                  { label: 'Total Reports', value: totalCount, icon: CheckSquare, bg: 'bg-sun', blob: 'bg-sun-deep/70 rounded-3xl rotate-12' },
+                  { label: 'Active Issues', value: activeCount, icon: Activity, bg: 'bg-blush', blob: 'bg-blush-deep/60 rounded-full' },
+                  { label: 'Resolved Issues', value: resolvedCount, icon: CheckCircle2, bg: 'bg-olive', blob: 'bg-olive-deep/60 rounded-3xl -rotate-12' },
+                  { label: 'Unassigned', value: issues.filter(i => !i.department_id).length, icon: AlertCircle, bg: 'bg-sky', blob: 'bg-sky-deep/60 rounded-full' }
                 ].map(stat => (
-                  <Card key={stat.label} className="bg-card border-border">
-                    <CardContent className="p-4 flex flex-col justify-between h-24">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-muted-foreground font-medium tracking-tight truncate leading-none">
-                          {stat.label}
-                        </span>
-                        <div className={`p-1.5 rounded-lg border ${stat.colorClass.split(' ').slice(1).join(' ')}`}>
-                          <stat.icon className={`w-3.5 h-3.5 ${stat.colorClass.split(' ')[0]}`} />
-                        </div>
-                      </div>
-                      <p className="text-xl font-bold text-foreground tracking-tight leading-none mt-2">
-                        {stat.value}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div key={stat.label} className={`relative overflow-hidden rounded-3xl p-4 h-28 flex flex-col justify-between transition-transform hover:-translate-y-0.5 ${stat.bg}`}>
+                    <div className={`pointer-events-none absolute -right-5 -top-5 h-20 w-20 ${stat.blob}`} />
+                    <div className="relative flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-black/70 truncate">{stat.label}</span>
+                      <stat.icon className="w-4 h-4 text-[#17140f]" />
+                    </div>
+                    <p className="relative font-heading text-4xl font-semibold tracking-tight text-[#17140f] leading-none">{stat.value}</p>
+                  </div>
                 ))}
               </div>
 
@@ -890,8 +863,8 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                       role="tab"
                       aria-selected={statusFilter === tab.id}
                       onClick={() => setStatusFilter(tab.id)}
-                      className={`flex-1 text-center text-[10px] font-semibold py-1.5 rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none ${statusFilter === tab.id
-                        ? 'bg-card text-[#0969da] border border-slate-850 shadow-sm'
+                      className={`flex-1 text-center text-[10px] font-semibold py-1.5 rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-[#17140f]/40 focus-visible:outline-none ${statusFilter === tab.id
+                        ? 'bg-card text-[#2f3fa8] border border-black/15 shadow-sm'
                         : 'text-muted-foreground hover:text-muted-foreground'
                         }`}
                     >
@@ -906,8 +879,8 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                 <button
                   aria-pressed={categoryFilter === 'all'}
                   onClick={() => setCategoryFilter('all')}
-                  className={`text-[10px] font-semibold px-3 py-1 rounded-full border transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none ${categoryFilter === 'all'
-                    ? 'bg-white text-slate-950 border-white font-bold shadow-sm'
+                  className={`text-[10px] font-semibold px-3 py-1 rounded-full border transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#17140f]/40 focus-visible:outline-none ${categoryFilter === 'all'
+                    ? 'bg-[#17140f] text-[#f5f0e1] border-[#17140f] font-bold shadow-sm'
                     : 'bg-background/40 text-muted-foreground border-border hover:text-muted-foreground'
                     }`}
                 >
@@ -921,8 +894,8 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                       key={key}
                       aria-pressed={isActive}
                       onClick={() => setCategoryFilter(key)}
-                      className={`flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1 rounded-full border transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none ${isActive
-                        ? 'bg-white text-slate-950 border-white font-bold shadow-sm'
+                      className={`flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1 rounded-full border transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#17140f]/40 focus-visible:outline-none ${isActive
+                        ? 'bg-[#17140f] text-[#f5f0e1] border-[#17140f] font-bold shadow-sm'
                         : 'bg-background/40 text-muted-foreground border-border hover:text-muted-foreground'
                         }`}
                     >
@@ -963,7 +936,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                               setCategoryFilter('all')
                               setStatusFilter('all')
                             }}
-                            className="mt-4 text-[10px] font-semibold text-[#0969da] hover:text-blue-300 hover:bg-blue-500/10"
+                            className="mt-4 text-[10px] font-semibold text-[#2f3fa8] hover:text-indigo-700 hover:bg-sky/40"
                           >
                             Reset Filter Settings
                           </Button>
@@ -986,7 +959,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                       bgClass: 'bg-card/40',
                       borderClass: 'border-border',
                       textClass: 'text-muted-foreground',
-                      dotClass: 'bg-slate-500'
+                      dotClass: 'bg-stone-400'
                     }
                     const severity = getSeverityLabel(issue.severity)
 
@@ -1010,7 +983,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                               setSelectedIssue(issue)
                             }
                           }}
-                          className="bg-card border-border hover:bg-muted transition-all duration-200 cursor-pointer relative overflow-hidden group/card focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none"
+                          className="bg-card border-border hover:bg-muted transition-all duration-200 cursor-pointer relative overflow-hidden group/card focus-visible:ring-2 focus-visible:ring-[#17140f]/40 focus-visible:outline-none"
                         >
                           {/* Left Border Category Accent */}
                           <div className={`absolute left-0 top-0 bottom-0 w-1 ${cat.color.replace('text-', 'bg-')}`} />
@@ -1036,7 +1009,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
 
                               {/* Title, Address, Date */}
                               <div className="min-w-0 flex-1">
-                                <h3 className="text-xs font-semibold text-foreground truncate leading-tight group-hover/card:text-[#0969da] transition-colors">
+                                <h3 className="text-xs font-semibold text-foreground truncate leading-tight group-hover/card:text-[#2f3fa8] transition-colors">
                                   {issue.title || issue.description?.slice(0, 60) + '...'}
                                 </h3>
 
@@ -1068,7 +1041,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                                 size="sm"
                                 variant="ghost"
                                 onClick={(e) => e.stopPropagation()}
-                                className="h-7 px-2.5 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-[#0969da] hover:bg-blue-950/30 border border-transparent hover:border-blue-900/40 hidden sm:inline-flex items-center gap-1 transition-all"
+                                className="h-7 px-2.5 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-[#2f3fa8] hover:bg-sky/60 border border-transparent hover:border-black/10 hidden sm:inline-flex items-center gap-1 transition-all"
                               >
                                 <Link href={`/municipality/dashboard?issueId=${issue.id}${issue.department_id ? `&departmentId=${issue.department_id}` : ''}`}>
                                   <Building2 className="w-3.5 h-3.5" />
@@ -1107,7 +1080,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
             bgClass: 'bg-card/40',
             borderClass: 'border-border',
             textClass: 'text-muted-foreground',
-            dotClass: 'bg-slate-500'
+            dotClass: 'bg-stone-400'
           }
           const severity = getSeverityLabel(selectedIssue.severity)
           const slaDays = getSlaDaysRemaining(selectedIssue.sla_deadline)
@@ -1161,7 +1134,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                           {status.label}
                         </span>
                         {selectedIssue.is_emergency && (
-                          <span className="bg-rose-950/30 border border-rose-900/30 text-rose-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse flex items-center gap-1">
+                          <span className="bg-blush/60 border border-black/10 text-rose-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse flex items-center gap-1">
                             <AlertCircle className="w-3 h-3" /> Emergency
                           </span>
                         )}
@@ -1169,10 +1142,10 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                           asChild
                           variant="outline"
                           size="sm"
-                          className="h-6 px-2.5 rounded-full border-blue-900/40 bg-blue-950/30 text-blue-300 hover:bg-blue-900/40 hover:text-white text-[10px] font-semibold flex items-center gap-1.5"
+                          className="h-6 px-2.5 rounded-full border-black/10 bg-sky/60 text-indigo-700 hover:bg-sky/60 hover:text-white text-[10px] font-semibold flex items-center gap-1.5"
                         >
                           <Link href={`/municipality/dashboard?issueId=${selectedIssue.id}${selectedIssue.department_id ? `&departmentId=${selectedIssue.department_id}` : ''}`}>
-                            <Building2 className="w-3 h-3 text-[#0969da]" />
+                            <Building2 className="w-3 h-3 text-[#2f3fa8]" />
                             <span>Municipal Workspace</span>
                           </Link>
                         </Button>
@@ -1182,7 +1155,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
 
                   {/* Location (Top Right) */}
                   <div className="flex items-start gap-2 text-foreground text-sm font-medium sm:text-right sm:max-w-[300px] mt-2 sm:mt-0 bg-card/40 p-2.5 rounded-xl border border-border/50">
-                    <MapPin className="w-4 h-4 mt-0.5 text-[#0969da] shrink-0 sm:order-2 sm:mt-0.5 sm:ml-2" />
+                    <MapPin className="w-4 h-4 mt-0.5 text-[#2f3fa8] shrink-0 sm:order-2 sm:mt-0.5 sm:ml-2" />
                     <div className="flex flex-col sm:items-end w-full">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Location</p>
                       <span className="leading-snug text-xs text-muted-foreground break-words w-full">{selectedIssue.address || 'Address recorded'}</span>
@@ -1228,7 +1201,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                       <div className="space-y-1">
                         <span className="text-[10px] text-muted-foreground font-semibold">Assigned Department</span>
                         <p className="text-xs font-bold text-foreground flex items-center gap-1.5 mt-1">
-                          <Building className="w-4 h-4 text-indigo-400" />
+                          <Building className="w-4 h-4 text-indigo-700" />
                           {selectedIssue.department_id ? (departmentMap[selectedIssue.department_id] || `Department ID: ${selectedIssue.department_id}`) : 'Municipal Processing Queue'}
                         </p>
                       </div>
@@ -1236,20 +1209,20 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                       <div className="space-y-0.5">
                         <span className="text-[10px] text-muted-foreground font-semibold">SLA Resolution Target</span>
                         {selectedIssue.status === 'resolved' ? (
-                          <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 mt-1">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          <p className="text-xs font-bold text-emerald-700 flex items-center gap-1.5 mt-1">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                             Resolved
                           </p>
                         ) : selectedIssue.sla_deadline ? (
                           <div className="mt-1">
                             <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                              <Calendar className="w-4 h-4 text-amber-400" />
+                              <Calendar className="w-4 h-4 text-amber-700" />
                               {new Date(selectedIssue.sla_deadline).toLocaleDateString('en-IN', {
                                 day: 'numeric', month: 'short', year: 'numeric'
                               })}
                             </p>
                             {slaDays !== null && (
-                              <p className={`text-[10px] font-semibold mt-1 ${slaDays < 0 ? 'text-rose-400' : 'text-amber-400'
+                              <p className={`text-[10px] font-semibold mt-1 ${slaDays < 0 ? 'text-rose-700' : 'text-amber-700'
                                 }`}>
                                 {slaDays < 0 ? `Overdue by ${Math.abs(slaDays)} days` : slaDays === 0 ? 'Due today' : `${slaDays} days remaining`}
                               </p>
@@ -1279,7 +1252,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-foreground flex items-center gap-1.5 leading-none">
-                                  <Globe className="w-3.5 h-3.5 text-[#0969da]" />
+                                  <Globe className="w-3.5 h-3.5 text-[#2f3fa8]" />
                                   Agent 0: Multilingual Translator
                                 </span>
                                 <AgentStatusBadge state={state0} issueId={selectedIssue.id} onRetry={handleRetry} />
@@ -1289,11 +1262,11 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                               </p>
 
                               {state0 === 'done' && (
-                                <div className="bg-[#0969da]/10 p-4 sm:p-5 rounded-xl border border-[#0969da]/30 mt-4">
+                                <div className="bg-sky/40 p-4 sm:p-5 rounded-xl border border-black/15 mt-4">
                                   <div className="flex flex-col gap-2.5">
                                     <div className="flex items-center gap-1.5">
                                       <span className="text-muted-foreground font-bold text-xs uppercase tracking-wider">Language Detected:</span>
-                                      <span className="font-bold text-[#0969da] text-xs uppercase tracking-wider">{selectedIssue.original_language || 'English'}</span>
+                                      <span className="font-bold text-[#2f3fa8] text-xs uppercase tracking-wider">{selectedIssue.original_language || 'English'}</span>
                                     </div>
                                     {selectedIssue.translation_trace && (
                                       <div className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
@@ -1317,7 +1290,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-foreground flex items-center gap-1.5 leading-none">
-                                  <Cpu className="w-3.5 h-3.5 text-[#0969da]" />
+                                  <Cpu className="w-3.5 h-3.5 text-[#2f3fa8]" />
                                   Agent 1: Semantic Classifier
                                 </span>
                                 <AgentStatusBadge state={state1} issueId={selectedIssue.id} onRetry={handleRetry} />
@@ -1343,7 +1316,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-foreground flex items-center gap-1.5 leading-none">
-                                  <Database className="w-3.5 h-3.5 text-[#0969da]" />
+                                  <Database className="w-3.5 h-3.5 text-[#2f3fa8]" />
                                   Agent 2: Vector Deduplicator
                                 </span>
                                 <AgentStatusBadge state={state2} issueId={selectedIssue.id} onRetry={handleRetry} />
@@ -1354,12 +1327,12 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
 
                               <Agent2MapVisuals key={selectedIssue.id} issue={selectedIssue} allIssues={issues} agentState={state2}>
                                 {state2 === 'done' && (
-                                  <div className="bg-[#0969da]/10 p-4 sm:p-5 rounded-xl border border-[#0969da]/30 mt-4">
+                                  <div className="bg-sky/40 p-4 sm:p-5 rounded-xl border border-black/15 mt-4">
                                     {selectedIssue.cluster_id ? (
                                       <div className="flex flex-col gap-2.5">
                                         <div className="flex items-center gap-1.5">
-                                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                                          <span className="font-bold text-amber-500 text-xs uppercase tracking-wider">Duplicate Detected</span>
+                                          <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+                                          <span className="font-bold text-amber-700 text-xs uppercase tracking-wider">Duplicate Detected</span>
                                         </div>
                                         <div className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
                                           <span className="font-bold text-muted-foreground">Trace:</span> This issue has been clustered with an existing report in this vicinity.
@@ -1372,8 +1345,8 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                                     ) : (
                                       <div className="flex flex-col gap-2.5">
                                         <div className="flex items-center gap-1.5">
-                                          <ShieldCheck className="w-3.5 h-3.5 text-[#0969da]" />
-                                          <span className="font-bold text-[#0969da] text-xs uppercase tracking-wider">Unique Report</span>
+                                          <ShieldCheck className="w-3.5 h-3.5 text-[#2f3fa8]" />
+                                          <span className="font-bold text-[#2f3fa8] text-xs uppercase tracking-wider">Unique Report</span>
                                         </div>
                                         <div className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
                                           <span className="font-bold text-muted-foreground">Trace:</span> Checked unique report. No duplicate entries detected within range.
@@ -1398,7 +1371,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-foreground flex items-center gap-1.5 leading-none">
-                                  <ShieldCheck className="w-3.5 h-3.5 text-[#0969da]" />
+                                  <ShieldCheck className="w-3.5 h-3.5 text-[#2f3fa8]" />
                                   Agent 3: Credibility Validator
                                 </span>
                                 <AgentStatusBadge state={state3} issueId={selectedIssue.id} onRetry={handleRetry} />
@@ -1412,12 +1385,12 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                               )}
 
                               {state3 === 'done' && (
-                                <div className="bg-[#0969da]/10 p-4 sm:p-5 rounded-xl border border-[#0969da]/30 mt-4">
+                                <div className="bg-sky/40 p-4 sm:p-5 rounded-xl border border-black/15 mt-4">
                                   <div className="flex flex-col gap-2.5">
                                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                                       <div className="flex items-center gap-1.5">
                                         <span className="text-muted-foreground font-bold text-xs uppercase tracking-wider">Credibility Index:</span>
-                                        <span className={`font-bold text-xs uppercase tracking-wider ${selectedIssue.credibility_score && selectedIssue.credibility_score >= 6 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                        <span className={`font-bold text-xs uppercase tracking-wider ${selectedIssue.credibility_score && selectedIssue.credibility_score >= 6 ? 'text-emerald-700' : 'text-amber-700'}`}>
                                           {selectedIssue.credibility_score ? `${(selectedIssue.credibility_score * 10).toFixed(0)}%` : 'Processing...'}
                                         </span>
                                       </div>
@@ -1425,12 +1398,12 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                                       <div className="flex items-center gap-1.5">
                                         <span className="text-muted-foreground font-bold text-xs uppercase tracking-wider">Validation:</span>
                                         {selectedIssue.needs_community_verification === false ? (
-                                          <span className="font-bold text-emerald-400 text-xs uppercase tracking-wider">Approved (by AI)</span>
+                                          <span className="font-bold text-emerald-700 text-xs uppercase tracking-wider">Approved (by AI)</span>
                                         ) : selectedIssue.needs_community_verification === true ? (
                                           getAgentState(selectedIssue.pipeline_stage, 'awaiting_community_review', isDuplicate) === 'done' ? (
-                                            <span className="font-bold text-emerald-400 text-xs uppercase tracking-wider">Community Review Completed</span>
+                                            <span className="font-bold text-emerald-700 text-xs uppercase tracking-wider">Community Review Completed</span>
                                           ) : (
-                                            <span className="font-bold text-amber-400 text-xs uppercase tracking-wider">Community Review Required</span>
+                                            <span className="font-bold text-amber-700 text-xs uppercase tracking-wider">Community Review Required</span>
                                           )
                                         ) : (
                                           <span className="font-bold text-muted-foreground text-xs uppercase tracking-wider">Pending</span>
@@ -1441,9 +1414,9 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                                     {selectedIssue.status === 'community_review' && voteTally && (
                                       <div className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed font-medium">
                                         <span className="font-bold text-muted-foreground">Community Tally:</span>{' '}
-                                        <span className="text-emerald-400 font-semibold">{voteTally.confirms} Confirms</span>{' '}
+                                        <span className="text-emerald-700 font-semibold">{voteTally.confirms} Confirms</span>{' '}
                                         <span className="text-muted-foreground mx-1">/</span>{' '}
-                                        <span className="text-rose-400 font-semibold">{voteTally.denies} Denies</span>
+                                        <span className="text-rose-700 font-semibold">{voteTally.denies} Denies</span>
                                       </div>
                                     )}
 
@@ -1471,7 +1444,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-foreground flex items-center gap-1.5 leading-none">
-                                  <Sparkles className="w-3.5 h-3.5 text-[#0969da]" />
+                                  <Sparkles className="w-3.5 h-3.5 text-[#2f3fa8]" />
                                   Agent 4: Resolution Routing & SLA Planner
                                 </span>
                                 <AgentStatusBadge state={state4} issueId={selectedIssue.id} onRetry={handleRetry} />
@@ -1488,9 +1461,9 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                                 <div className="mt-2">
                                   {selectedIssue.civic_brief ? (
                                     <div className="bg-card/50 border border-border rounded-xl p-5 shadow-inner mt-4 relative overflow-hidden">
-                                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/50" />
+                                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-olive/60" />
                                       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-2.5">
-                                        <FileText className="w-4 h-4 text-emerald-500" /> Generated Civic Brief (Officer view)
+                                        <FileText className="w-4 h-4 text-emerald-700" /> Generated Civic Brief (Officer view)
                                       </span>
                                       <MarkdownRenderer content={selectedIssue.civic_brief} />
                                     </div>
@@ -1513,7 +1486,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
 
                         return (
                           <div className={`relative ${state5 === 'pending' || state5 === 'skipped' ? 'opacity-40' : ''}`}>
-                            <div className={`absolute -left-[33px] top-0.5 border-4 border-slate-950 w-4 h-4 rounded-full flex items-center justify-center shadow-md ${state5 === 'done' ? 'bg-[#2da44e] shadow-emerald-500/30' : state5 === 'skipped' ? 'bg-slate-600 shadow-slate-500/30' : 'bg-slate-800 opacity-40'}`} />
+                            <div className={`absolute -left-[33px] top-0.5 border-4 border-background w-4 h-4 rounded-full flex items-center justify-center shadow-md ${state5 === 'done' ? 'bg-[#17140f] shadow-black/10' : state5 === 'skipped' ? 'bg-stone-400 shadow-black/10' : 'bg-stone-300 opacity-40'}`} />
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 leading-none">
@@ -1521,9 +1494,9 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                                   Agent 5: Predictive Analytics Agent
                                 </span>
                                 {state5 === 'skipped' ? (
-                                  <span className="text-[9px] font-bold text-slate-400 bg-slate-500/10 px-1.5 py-0.2 rounded border border-slate-500/20 uppercase tracking-wide leading-none">SKIPPED</span>
+                                  <span className="text-[9px] font-bold text-stone-600 bg-stone-400 px-1.5 py-0.2 rounded border border-black/10 uppercase tracking-wide leading-none">SKIPPED</span>
                                 ) : state5 === 'done' ? (
-                                  <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20 uppercase tracking-wide leading-none">DONE</span>
+                                  <span className="text-[9px] font-bold text-emerald-700 bg-olive/40 px-1.5 py-0.2 rounded border border-olive-deep/40 uppercase tracking-wide leading-none">DONE</span>
                                 ) : (
                                   <span className="text-[9px] font-bold text-muted-foreground bg-card px-1.5 py-0.2 rounded border border-border uppercase tracking-wide leading-none">PENDING</span>
                                 )}
@@ -1544,10 +1517,10 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                 <div className="w-full h-px bg-border my-8" />
 
                 {/* Admin Controls Section */}
-                <div className="bg-black/40 border border-[#0969da]/30 rounded-xl p-6 sm:p-8 space-y-6 mb-6 shadow-inner relative overflow-hidden">
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0969da]/50" />
+                <div className="bg-black/40 border border-black/15 rounded-xl p-6 sm:p-8 space-y-6 mb-6 shadow-inner relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-sky/40" />
                   <h4 className="text-[13px] font-bold text-foreground tracking-wider uppercase flex items-center gap-2 leading-none">
-                    <Wrench className="w-4 h-4 text-[#0969da]" /> Administrative Actions
+                    <Wrench className="w-4 h-4 text-[#2f3fa8]" /> Administrative Actions
                   </h4>
 
                   {/* Resolve status + direct resolve (demo mode) */}
@@ -1558,7 +1531,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-background border border-border rounded-xl p-4">
                         <div className="space-y-1">
                           <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Resolution Status</p>
-                          <p className={`text-sm font-bold flex items-center gap-2 ${isResolved ? 'text-green-500' : 'text-amber-500'}`}>
+                          <p className={`text-sm font-bold flex items-center gap-2 ${isResolved ? 'text-green-700' : 'text-amber-700'}`}>
                             {isResolved ? <CheckCircle2 className="w-4 h-4" /> : <Clock3 className="w-4 h-4" />}
                             {isResolved ? 'Resolved' : 'Not resolved'}
                             <span className="text-[11px] font-medium text-muted-foreground">
@@ -1573,10 +1546,10 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                           <Button
                             asChild
                             variant="outline"
-                            className="bg-card border border-blue-900/40 hover:bg-blue-950/40 text-blue-300 text-xs h-10 px-4 rounded-xl flex items-center gap-2"
+                            className="bg-card border border-black/10 hover:bg-sky/60 text-indigo-700 text-xs h-10 px-4 rounded-xl flex items-center gap-2"
                           >
                             <Link href={`/municipality/dashboard?issueId=${selectedIssue.id}${selectedIssue.department_id ? `&departmentId=${selectedIssue.department_id}` : ''}`}>
-                              <Building2 className="w-4 h-4 text-[#0969da]" /> Municipal Workspace
+                              <Building2 className="w-4 h-4 text-[#2f3fa8]" /> Municipal Workspace
                             </Link>
                           </Button>
                           {isResolved ? (
@@ -1591,7 +1564,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                             <Button
                               disabled={isUpdatingStatus}
                               onClick={() => handleUpdateIssue({ status: 'resolved' })}
-                              className="bg-green-600 hover:bg-green-700 text-white font-semibold text-xs h-10 px-5 rounded-xl"
+                              className="bg-[#17140f] hover:bg-black text-white font-semibold text-xs h-10 px-5 rounded-xl"
                             >
                               <CheckCircle2 className="w-4 h-4 mr-2" /> Mark as Resolved
                             </Button>
@@ -1606,7 +1579,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                       <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Update Status</label>
                       <select
                         disabled={isUpdatingStatus}
-                        className="w-full text-sm bg-background border border-border rounded-xl p-3 focus:ring-2 focus:ring-[#0969da] focus:border-[#0969da] transition-all"
+                        className="w-full text-sm bg-background border border-border rounded-xl p-3 focus:ring-2 focus:ring-[#17140f]/40 focus:border-[#17140f] transition-all"
                         value={selectedIssue.status}
                         onChange={(e) => handleUpdateIssue({ status: e.target.value as IssueStatus })}
                       >
@@ -1622,7 +1595,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                       <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Assign Department</label>
                       <select
                         disabled={isUpdatingStatus}
-                        className="w-full text-sm bg-background border border-border rounded-xl p-3 focus:ring-2 focus:ring-[#0969da] focus:border-[#0969da] transition-all"
+                        className="w-full text-sm bg-background border border-border rounded-xl p-3 focus:ring-2 focus:ring-[#17140f]/40 focus:border-[#17140f] transition-all"
                         value={selectedIssue.department_id || ''}
                         onChange={(e) => handleUpdateIssue({ department_id: e.target.value })}
                       >
@@ -1638,7 +1611,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                 {/* Internal Municipal Comments */}
                 <div className="space-y-4">
                   <h4 className="text-[13px] font-bold text-foreground tracking-wider uppercase flex items-center gap-2 leading-none pl-1">
-                    <FileText className="w-4 h-4 text-[#0969da]" /> Internal Municipal Comments
+                    <FileText className="w-4 h-4 text-[#2f3fa8]" /> Internal Municipal Comments
                   </h4>
                   <div className="bg-background border border-border rounded-xl p-4 space-y-4 max-h-[300px] overflow-y-auto mb-4">
                     {comments.length === 0 ? (
@@ -1679,7 +1652,7 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                     <Button
                       onClick={handleSubmitComment}
                       disabled={isSubmittingComment || !newComment.trim()}
-                      className="bg-[#0969da] hover:bg-blue-600 text-white font-semibold text-xs h-10 px-4 shrink-0"
+                      className="bg-[#17140f] hover:bg-black text-white font-semibold text-xs h-10 px-4 shrink-0"
                     >
                       {isSubmittingComment ? 'Posting...' : 'Post'}
                     </Button>
@@ -1691,10 +1664,10 @@ export function AdminDashboardClient({ user, profile, initialIssues, departments
                   <Button
                     asChild
                     variant="outline"
-                    className="w-full sm:w-auto bg-blue-950/30 border border-blue-900/40 hover:bg-blue-900/30 text-blue-300 text-xs h-10 px-5 rounded-xl flex items-center gap-2"
+                    className="w-full sm:w-auto bg-sky/60 border border-black/10 hover:bg-sky/60 text-indigo-700 text-xs h-10 px-5 rounded-xl flex items-center gap-2"
                   >
                     <Link href={`/municipality/dashboard?issueId=${selectedIssue.id}${selectedIssue.department_id ? `&departmentId=${selectedIssue.department_id}` : ''}`}>
-                      <Building2 className="w-4 h-4 text-[#0969da]" /> Open in Municipal Workspace
+                      <Building2 className="w-4 h-4 text-[#2f3fa8]" /> Open in Municipal Workspace
                     </Link>
                   </Button>
                   <Button

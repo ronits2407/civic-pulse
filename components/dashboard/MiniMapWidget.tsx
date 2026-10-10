@@ -9,8 +9,8 @@ import type { MapIssue } from './IssueMapInner'
 const IssueMapInner = dynamic(() => import('./IssueMapInner'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-[#0d1117]">
-      <Loader2 className="w-6 h-6 text-[#2da44e] animate-spin" />
+    <div className="w-full h-full flex flex-col items-center justify-center bg-[#fbf8ef]">
+      <Loader2 className="w-6 h-6 text-[#4d6a1f] animate-spin" />
       <span className="text-[10px] text-muted-foreground mt-2 font-medium">Loading map...</span>
     </div>
   ),
