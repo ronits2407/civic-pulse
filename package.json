@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "bun test"
+    "test": "bun test",
+    "promote": "bun run scripts/promote-admin.ts"
   },
   "dependencies": {
     "@cline/sdk": "^0.0.92",
