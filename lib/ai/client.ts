@@ -88,6 +88,38 @@ function getOllamaProModel(): string {
   return process.env.OLLAMA_PRO_MODEL || 'qwen3:235b-a22b'
 }
 
+// ─── Rate Limit & Retry Helper ───────────────────────────────────────────────
+
+async function callWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
+  let attempt = 0
+  while (true) {
+    try {
+      return await fn()
+    } catch (err: any) {
+      attempt++
+      const errMsg = err?.message || String(err)
+      const isRateLimit =
+        err?.status === 429 ||
+        err?.code === 429 ||
+        errMsg.includes('429') ||
+        errMsg.includes('RESOURCE_EXHAUSTED') ||
+        errMsg.includes('Quota exceeded')
+
+      if (isRateLimit && attempt <= maxRetries) {
+        let waitMs = 15000 * attempt
+        const match = errMsg.match(/retry in ([0-9.]+)s/i) || errMsg.match(/"retryDelay":"([0-9.]+)s"/i)
+        if (match && match[1]) {
+          waitMs = Math.ceil(parseFloat(match[1]) * 1000) + 1500
+        }
+        console.warn(`[AI Client] Gemini Free Tier rate limit (429) hit. Pausing ${(waitMs / 1000).toFixed(1)}s before retry (attempt ${attempt}/${maxRetries})...`)
+        await new Promise((resolve) => setTimeout(resolve, waitMs))
+        continue
+      }
+      throw err
+    }
+  }
+}
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
@@ -124,18 +156,20 @@ export async function generateStructuredJSON<T>(
     }
   }
 
-  // Default: Gemini (using @google/genai SDK)
+  // Default: Gemini (using @google/genai SDK) - strictly Flash everywhere
   const ai = getGenAI()
-  const modelId = usePro ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+  const modelId = 'gemini-2.5-flash'
 
-  const response = await ai.models.generateContent({
-    model: modelId,
-    contents: prompt,
-    config: {
-      systemInstruction,
-      temperature: 0.1,
-    },
-  })
+  const response = await callWithRetry(() =>
+    ai.models.generateContent({
+      model: modelId,
+      contents: prompt,
+      config: {
+        systemInstruction,
+        temperature: 0.1,
+      },
+    })
+  )
 
   const text = response.text || ''
   const clean = text.replace(/```json|```/g, '').trim()
@@ -226,26 +260,28 @@ export async function analyzeImage(imageUrl: string, prompt: string): Promise<st
 
   const base64Image = buffer.toString('base64')
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          {
-            inlineData: {
-              data: base64Image,
-              mimeType: mimeType,
+  const response = await callWithRetry(() =>
+    ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              inlineData: {
+                data: base64Image,
+                mimeType: mimeType,
+              },
             },
-          },
-          { text: prompt },
-        ],
+            { text: prompt },
+          ],
+        },
+      ],
+      config: {
+        temperature: 0.1,
       },
-    ],
-    config: {
-      temperature: 0.1,
-    },
-  })
+    })
+  )
 
   return response.text || ''
 }
@@ -270,13 +306,15 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
   // Default: Gemini embedding (via @google/genai)
   const ai = getGenAI()
-  const response = await ai.models.embedContent({
-    model: 'gemini-embedding-001',
-    contents: text,
-    config: {
-      outputDimensionality: 768,
-    },
-  })
+  const response = await callWithRetry(() =>
+    ai.models.embedContent({
+      model: 'gemini-embedding-001',
+      contents: text,
+      config: {
+        outputDimensionality: 768,
+      },
+    })
+  )
 
   return response.embeddings![0].values!
 }
@@ -302,18 +340,20 @@ export async function generateText(
     return response.choices[0]?.message?.content || ''
   }
 
-  // Gemini (via @google/genai)
+  // Gemini (via @google/genai) - strictly Flash everywhere
   const ai = getGenAI()
-  const modelId = usePro ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+  const modelId = 'gemini-2.5-flash'
 
-  const response = await ai.models.generateContent({
-    model: modelId,
-    contents: prompt,
-    config: {
-      ...(systemInstruction ? { systemInstruction } : {}),
-      temperature: 0.1,
-    },
-  })
+  const response = await callWithRetry(() =>
+    ai.models.generateContent({
+      model: modelId,
+      contents: prompt,
+      config: {
+        ...(systemInstruction ? { systemInstruction } : {}),
+        temperature: 0.1,
+      },
+    })
+  )
 
   return response.text || ''
 }
@@ -336,12 +376,14 @@ export function getChatModel(usePro = false) {
     })
   }
 
-  const model = usePro ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+  // Strictly Flash everywhere
+  const model = 'gemini-2.5-flash'
   if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set')
   
   return new ChatGoogleGenerativeAI({
     model: model,
     temperature: 0.1,
     apiKey: process.env.GEMINI_API_KEY,
+    maxRetries: 5,
   })
 }

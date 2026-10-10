@@ -219,7 +219,7 @@ export function Agent5PredictivePanel({ isOpen, onClose, userLocation }: Props) 
               <BrainCircuit className="w-4 h-4 text-[#0969da]" /> Predictive Hotspot Intelligence
             </h2>
             <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-              Agent 5 utilizes DBSCAN clustering on historical reports, applying Gemini Pro's reasoning to generate early-warning alerts for civic issues.
+              Agent 5 utilizes DBSCAN clustering on historical reports, applying Gemini Flash's reasoning to generate early-warning alerts for civic issues.
             </p>
           </div>
 

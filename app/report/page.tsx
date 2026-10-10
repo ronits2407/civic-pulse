@@ -198,10 +198,16 @@ export default function ReportPage() {
           const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
           })
+          let address = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`
+          try {
+            const res = await fetch(`/api/geocode?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`)
+            const data = await res.json()
+            if (data.address) address = data.address
+          } catch {}
           finalCoords = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
-            address: `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`,
+            address,
           }
         } catch {}
       }
