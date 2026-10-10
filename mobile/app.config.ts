@@ -40,6 +40,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.ACCESS_COARSE_LOCATION',
       'android.permission.ACCESS_FINE_LOCATION',
       'android.permission.CAMERA',
+      // Android 13+ will not show the emergency-alert notification without this.
+      'android.permission.POST_NOTIFICATIONS',
     ],
   },
   plugins: [
@@ -71,6 +73,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         cameraPermission: 'CivicPulse needs camera access so you can photograph a civic issue on the spot.',
         recordAudioAndroid: false,
+      },
+    ],
+    'expo-sqlite',
+    // Neighborhood Emergency Network: offline alert relay over Google Nearby Connections.
+    // Android only. The plugin writes the Bluetooth / Wi-Fi / Nearby permissions into the
+    // manifest; runtime consent is requested by lib/mesh/permissions.ts.
+    'expo-nearby-connections',
+    [
+      'expo-notifications',
+      {
+        color: '#cf222e',
+        defaultChannel: 'mesh-alerts',
       },
     ],
   ],

@@ -316,6 +316,13 @@ export default function HomeScreen() {
           <View style={styles.footerLinks}>
             <Divider style={styles.footerDivider} />
             <QuickLink
+              icon="broadcast"
+              label="Neighborhood emergency network"
+              hint="Pass alerts between nearby phones, no internet needed"
+              tone={accent.redSoft}
+              onPress={() => router.push('/emergency-network')}
+            />
+            <QuickLink
               icon="trophy-outline"
               label="Karma leaderboard"
               hint={`${karma} points · ${level.next}`}

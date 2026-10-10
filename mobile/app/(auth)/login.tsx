@@ -26,6 +26,13 @@ import { accent, ink, line, radius, space, surface } from '@/theme/tokens'
  * is a privilege escalation reachable by anyone who can edit a link. Role is read
  * from the profile after authentication and routes the user accordingly.
  */
+/**
+ * The redirect-URL banner is shown in every build (development AND the release APK) so the
+ * exact URL a phone sends can be allow-listed in Supabase. Set EXPO_PUBLIC_SHOW_AUTH_DEBUG=0
+ * when building for the public to hide it.
+ */
+const SHOW_AUTH_DEBUG = __DEV__ || process.env.EXPO_PUBLIC_SHOW_AUTH_DEBUG !== '0'
+
 export default function LoginScreen() {
   const router = useRouter()
   const toast = useToast()
@@ -150,10 +157,10 @@ export default function LoginScreen() {
           tone="blue"
         />
 
-        {__DEV__ ? (
+        {SHOW_AUTH_DEBUG ? (
           <Notice
             tone="amber"
-            title="Dev: Google redirect URL"
+            title="Google redirect URL"
             body={`This device sends:\n${env.authRedirect}\n\nIf Google lands on localhost:3000, Supabase rejected it. Add this exact URL to Supabase > Authentication > URL Configuration > Redirect URLs, then run: sh scripts/check-auth-redirect.sh '${env.authRedirect}'`}
           />
         ) : null}

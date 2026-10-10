@@ -87,6 +87,7 @@ export default function RootLayout() {
                 <Stack.Screen name="issue/[id]" options={{ title: 'Report detail' }} />
                 <Stack.Screen name="leaderboard" options={{ title: 'Karma leaderboard' }} />
                 <Stack.Screen name="receipt" options={{ title: 'Impact receipt' }} />
+                <Stack.Screen name="emergency-network" options={{ title: 'Emergency network' }} />
               </Stack>
             </ToastHost>
           </AuthProvider>
