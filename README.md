@@ -15,6 +15,7 @@
 
 ## Table of Contents
 
+- [Slide Deck](#slide-deck)
 - [System Architecture](#system-architecture)
 - [The 6-Agent LangGraph Pipeline](#the-6-agent-langgraph-pipeline)
 - [Web Frontends](#web-frontends)
@@ -28,6 +29,23 @@
   - [2. Mobile App Setup](#2-mobile-app-setup)
 - [Environment Configuration](#environment-configuration)
 - [Deployment](#deployment)
+
+---
+
+## Slide Deck
+
+**[Live deck: civicpulse-855460198105.asia-south1.run.app/deck](https://civicpulse-855460198105.asia-south1.run.app/deck)**
+
+Offline copy: [PPTX](./docs/export/civicpulse-deck.pptx)
+
+| | |
+|---|---|
+| ![One pipeline, citizen to proof](./docs/slides/01-pipeline.png) | ![Six agents, one graph](./docs/slides/02-six-agents.png) |
+| ![Citizen dashboard](./docs/slides/03-citizen-dashboard.png) | ![Admin command centre](./docs/slides/04-admin-command-centre.png) |
+| ![TSP route planner](./docs/slides/05-route-planner.png) | ![Resolution integrity](./docs/slides/06-resolution-integrity.png) |
+| ![Offline mesh emergency network](./docs/slides/07-offline-mesh.png) | ![Impact receipt](./docs/slides/08-impact-receipt.png) |
+
+![Cline SDK, everywhere](./docs/slides/09-cline-sdk.png)
 
 ---
 
