@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/db/server'
+import { resolveActingUser } from '@/lib/auth/api-auth'
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { lat, lng, userId, address } = body
 
-    if (!lat || !lng || !userId) {
+    if (!lat || !lng) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const identity = await resolveActingUser(req, userId)
+    if (!identity.userId) {
+      return NextResponse.json(
+        { error: identity.error ?? 'Authentication required.' },
+        { status: identity.status ?? 401 }
+      )
     }
 
     const supabase = createServiceClient()
@@ -19,7 +28,7 @@ export async function POST(req: NextRequest) {
         home_location: `POINT(${lng} ${lat})`,
         home_address: address || null
       })
-      .eq('id', userId)
+      .eq('id', identity.userId)
 
     if (error) throw error
 

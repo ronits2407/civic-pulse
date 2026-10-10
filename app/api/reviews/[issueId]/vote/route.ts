@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/db/server'
+import { resolveActingUser } from '@/lib/auth/api-auth'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ issueId: string }> }) {
   try {
@@ -7,16 +8,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
     const body = await req.json()
     const { userId, verdict, comment, distanceMeters } = body
 
-    if (!userId || typeof verdict !== 'boolean') {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    if (typeof verdict !== 'boolean') {
+      return NextResponse.json({ error: 'Missing verdict' }, { status: 400 })
     }
+
+    const identity = await resolveActingUser(req, userId)
+    if (!identity.userId) {
+      return NextResponse.json(
+        { error: identity.error ?? 'Authentication required.' },
+        { status: identity.status ?? 401 }
+      )
+    }
+    const actingUserId = identity.userId
 
     const supabase = createServiceClient()
 
     // 1. Insert verification record
     const { error: insertError } = await supabase.from('verifications').insert({
       issue_id: issueId,
-      user_id: userId,
+      user_id: actingUserId,
       verdict: verdict,
       comment: comment || null,
       distance_meters: distanceMeters || null,
@@ -26,7 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
 
     // 2. Add karma for participating (+2)
     await supabase.from('karma_events').insert({
-      user_id: userId,
+      user_id: actingUserId,
       event_type: 'community_review_participation',
       points: 2,
       issue_id: issueId,

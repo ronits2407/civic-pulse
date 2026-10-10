@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/db/server'
+import { resolveActingUser } from '@/lib/auth/api-auth'
 import wkx from 'wkx'
 
 // Haversine distance in meters
@@ -23,9 +24,14 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const userId = searchParams.get('userId')
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
+    const identity = await resolveActingUser(req, userId)
+    if (!identity.userId) {
+      return NextResponse.json(
+        { error: identity.error ?? 'Authentication required.' },
+        { status: identity.status ?? 401 }
+      )
     }
+    const actingUserId = identity.userId
 
     const supabase = createServiceClient()
 
@@ -33,7 +39,7 @@ export async function GET(req: NextRequest) {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('home_location')
-      .eq('id', userId)
+      .eq('id', actingUserId)
       .single()
 
     if (profileError || !profile || !profile.home_location) {
@@ -51,7 +57,7 @@ export async function GET(req: NextRequest) {
     const { data: coordsData, error: coordsError } = await supabase
       .from('profiles')
       .select('id, location:home_location')
-      .eq('id', userId)
+      .eq('id', actingUserId)
       .single()
       
     // Actually, let's just require the frontend to pass lat/lng when it fetches, OR we can extract it from the user's browser geolocation if they click "fetch".
@@ -103,7 +109,7 @@ export async function GET(req: NextRequest) {
     const { data: userVotes, error: votesError } = await supabase
       .from('verifications')
       .select('issue_id')
-      .eq('user_id', userId)
+      .eq('user_id', actingUserId)
       
     if (votesError) throw votesError
 
@@ -112,7 +118,7 @@ export async function GET(req: NextRequest) {
     // 3. Filter issues
     const nearbyIssues = issues.filter(issue => {
       // Don't show reporter their own issue
-      if (issue.user_id === userId) return false
+      if (issue.user_id === actingUserId) return false
       // Don't show issues they already voted on
       if (votedIssueIds.has(issue.id)) return false
       

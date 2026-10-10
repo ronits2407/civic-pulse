@@ -3,18 +3,30 @@ import { createServiceClient } from '@/lib/db/server'
 import { createIssuePipeline } from '@/lib/agents/pipeline'
 import { generateEmbedding } from '@/lib/ai/client'
 import { AgentState } from '@/lib/db/types'
+import { resolveActingUser } from '@/lib/auth/api-auth'
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { text, imageUrl, videoUrl, coordinates, userId } = body
 
-    if (!text || !coordinates || !userId) {
+    if (!text || !coordinates) {
       return NextResponse.json(
-        { error: 'Missing required fields: text, coordinates, userId' },
+        { error: 'Missing required fields: text, coordinates' },
         { status: 400 }
       )
     }
+
+    // Prefer the verified session identity (the native client sends a bearer token).
+    // Falls back to the legacy client-supplied id only when no credential was sent.
+    const identity = await resolveActingUser(req, userId)
+    if (!identity.userId) {
+      return NextResponse.json(
+        { error: identity.error ?? 'Authentication required.' },
+        { status: identity.status ?? 401 }
+      )
+    }
+    const actingUserId = identity.userId
 
     const supabase = createServiceClient()
 
@@ -23,7 +35,7 @@ export async function POST(req: NextRequest) {
     const { data: issue, error: insertError } = await supabase
       .from('issues')
       .insert({
-        user_id: userId,
+        user_id: actingUserId,
         description: text,
         photo_url: imageUrl || null,
         video_url: videoUrl || null,
@@ -40,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     // Award +10 karma for reporting an issue
     await supabase.from('karma_events').insert({
-      user_id: userId,
+      user_id: actingUserId,
       event_type: 'issue_reported',
       points: 10,
       issue_id: issue.id,
@@ -55,7 +67,7 @@ export async function POST(req: NextRequest) {
       videoUrl: videoUrl || null,
       coordinates,
       address: coordinates.address || '',
-      userId,
+      userId: actingUserId,
       originalLanguage: 'English',
       englishTranslation: '',
       translationTrace: '',
