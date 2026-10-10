@@ -235,7 +235,7 @@ export default function Agent2MapInner({ issue, allIssues }: Props) {
     <>
       <style>{`
         .leaflet-container { background: #0d1117 !important; }
-        .leaflet-tile { filter: brightness(0.7) saturate(1.1); }
+        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         .leaflet-control-attribution { display: none !important; }
       `}</style>
       <MapContainer
@@ -250,9 +250,8 @@ export default function Agent2MapInner({ issue, allIssues }: Props) {
         style={{ width: '100%', height: '100%', borderRadius: '12px' }}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          subdomains="abcd"
-          maxZoom={20}
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
         />
         <RadarLayer centerIssue={issue} allIssues={allIssues} />
       </MapContainer>

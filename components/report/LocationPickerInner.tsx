@@ -203,7 +203,7 @@ export default function LocationPickerInner({ initialLocation, onLocationPick }:
     <>
       <style>{`
         .leaflet-container { background: #0d1117 !important; cursor: crosshair !important; }
-        .leaflet-tile { filter: brightness(0.92) saturate(1.1); }
+        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         .lp-popup .leaflet-popup-content-wrapper {
           background: transparent !important;
           border: none !important;
@@ -238,10 +238,9 @@ export default function LocationPickerInner({ initialLocation, onLocationPick }:
         attributionControl={true}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          subdomains="abcd"
-          maxZoom={20}
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          maxZoom={19}
         />
         <PickLayer
           initialLocation={initialLocation}

@@ -1,4 +1,4 @@
-import { createServiceClient } from '@/lib/db/server'
+import { createServerSupabaseClient, createServiceClient } from '@/lib/db/server'
 import { NextResponse } from 'next/server'
 import wkx from 'wkx'
 
@@ -6,14 +6,30 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const supabase = createServiceClient()
+    const supabase = await createServerSupabaseClient()
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('issues')
       .select('id, title, category, status, address, location, cluster_id, severity, created_at')
       .or('status.neq.closed,cluster_id.not.is.null')
       .order('created_at', { ascending: false })
       .limit(500)
+
+    if (error) {
+      try {
+        const serviceClient = createServiceClient()
+        const fallback = await serviceClient
+          .from('issues')
+          .select('id, title, category, status, address, location, cluster_id, severity, created_at')
+          .or('status.neq.closed,cluster_id.not.is.null')
+          .order('created_at', { ascending: false })
+          .limit(500)
+        if (!fallback.error) {
+          data = fallback.data
+          error = null
+        }
+      } catch {}
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

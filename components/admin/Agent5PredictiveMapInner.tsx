@@ -164,7 +164,7 @@ export default function Agent5PredictiveMapInner(props: Props) {
     <>
       <style>{`
         .leaflet-container { background: #0d1117 !important; }
-        .leaflet-tile { filter: brightness(0.92) saturate(1.1); }
+        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
         .civic-popup .leaflet-popup-content-wrapper {
           background: transparent !important;
           border: none !important;
@@ -183,10 +183,9 @@ export default function Agent5PredictiveMapInner(props: Props) {
         zoomControl={false}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          subdomains="abcd"
-          maxZoom={20}
+          maxZoom={19}
         />
         <PredictiveLayer {...props} />
       </MapContainer>
