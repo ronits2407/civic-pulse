@@ -151,6 +151,23 @@ function getKarmaLevel(score: number) {
   return { name: 'Civic Observer', level: 1, min: 0, max: 50, next: 'Civic Guardian' }
 }
 
+
+// SLA helpers: progress of the SLA window elapsed (0-100) and urgency tone
+function getSlaProgress(createdAt: string, deadline: string | null): number | null {
+  if (!deadline) return null
+  const start = new Date(createdAt).getTime()
+  const end = new Date(deadline).getTime()
+  if (!isFinite(start) || !isFinite(end) || end <= start) return null
+  return Math.min(100, Math.max(0, ((Date.now() - start) / (end - start)) * 100))
+}
+
+function getSlaTone(pct: number | null, daysLeft: number | null, closed: boolean) {
+  if (closed) return { bar: 'bg-gradient-to-r from-emerald-600 to-emerald-400', text: 'text-emerald-400' }
+  if ((daysLeft !== null && daysLeft < 0) || (pct !== null && pct >= 90)) return { bar: 'bg-gradient-to-r from-rose-600 to-rose-400', text: 'text-rose-400' }
+  if (pct !== null && pct >= 60) return { bar: 'bg-gradient-to-r from-amber-600 to-amber-400', text: 'text-amber-400' }
+  return { bar: 'bg-gradient-to-r from-[#0969da] to-[#2f81f7]', text: 'text-[#58a6ff]' }
+}
+
 export type PipelineState = 'done' | 'in_progress' | 'pending' | 'failed' | 'skipped'
 
 const getAgentState = (currentStage: string | null, targetStage: string, isDuplicate?: boolean): PipelineState => {
@@ -718,9 +735,10 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-blue-500/30 selection:text-blue-200">
+    <div className="min-h-screen bg-[#0a0d12] text-foreground font-sans selection:bg-blue-500/30 selection:text-blue-200 relative">
       {/* Top Navigation */}
-      <nav className="sticky top-0 z-40 bg-background border-b border-border transition-all">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_60%_100%_at_50%_0%,rgba(47,129,247,0.14),transparent)]" />
+      <nav className="sticky top-0 z-40 bg-[#0a0d12]/70 backdrop-blur-xl border-b border-white/[0.08] transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="flex justify-between items-center h-16">
             {/* Left side empty placeholder to balance flex layout */}
@@ -728,10 +746,10 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
 
             {/* Centered Logo / Title */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none select-none">
-              <span className="text-base font-bold tracking-tight text-foreground block leading-none">
+              <span className="text-base font-semibold tracking-tight text-foreground block leading-none">
                 CivicPulse
               </span>
-              <span className="text-[10px] font-medium text-muted-foreground tracking-wider uppercase block mt-1">
+              <span className="text-[10px] font-bold text-muted-foreground tracking-wider uppercase block mt-1">
                 Citizen Portal
               </span>
             </div>
@@ -766,7 +784,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                     className="fixed inset-0 z-40 cursor-default"
                     onClick={() => setIsProfileOpen(false)}
                   />
-                  <div className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg bg-card border border-border z-50 py-1 origin-top-right focus:outline-none">
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl shadow-2xl shadow-black/50 bg-[#0d1117]/95 backdrop-blur-xl border border-white/[0.1] z-50 py-1 origin-top-right focus:outline-none overflow-hidden">
                     {/* User info header in dropdown (GitHub style) */}
                     <div className="px-4 py-2 border-b border-border text-left">
                       <p className="text-xs font-semibold text-foreground truncate">
@@ -823,7 +841,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
       </nav>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
           {/* LEFT COLUMN: Profile & Action & Stats */}
@@ -833,7 +851,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
             {/* Quick Actions (Large Primary Button) */}
             <Button
               onClick={() => router.push('/report')}
-              className="w-full bg-[#2da44e] hover:bg-[#2c974b] text-foreground font-semibold text-sm h-12 rounded-xl transition-colors group"
+              className="w-full bg-gradient-to-b from-[#2f81f7] to-[#0969da] hover:from-[#4493f8] hover:to-[#1a7ae8] text-white font-semibold text-sm h-12 rounded-2xl shadow-[0_8px_24px_-8px_rgba(47,129,247,0.6),inset_0_1px_0_0_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all duration-200 group"
             >
               <div className="flex items-center justify-center gap-2">
                 <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
@@ -851,7 +869,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
             <Button
               onClick={() => { setIsLeaderboardOpen(true); setIsMapOpen(false); setSelectedIssue(null); }}
               variant="outline"
-              className="w-full border-border bg-card hover:bg-muted hover:border-amber-500/40 text-foreground font-semibold text-sm h-10 rounded-xl transition-all group mt-3"
+              className="w-full border border-white/[0.08] bg-card/40 hover:bg-card/70 hover:border-amber-500/40 backdrop-blur-md text-foreground font-semibold text-sm h-11 rounded-2xl hover:-translate-y-0.5 transition-all duration-200 group mt-3"
             >
               <div className="flex items-center justify-center gap-2">
                 <Award className="w-4 h-4 text-muted-foreground group-hover:text-amber-500 transition-colors" />
@@ -859,73 +877,86 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
               </div>
             </Button>
 
-            {/* Rich Statistics Overview */}
+            {/* KPI Overview */}
             <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase pl-1">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">
                 Dashboard Overview
               </h3>
 
               <div className="grid grid-cols-2 gap-3">
-                {/* Stat Cards */}
                 {[
-                  {
-                    label: 'Total Reports',
-                    value: totalCount,
-                    icon: CheckSquare,
-                    colorClass: 'text-[#0969da] bg-blue-950/20 border-blue-900/30'
-                  },
-                  {
-                    label: 'Active Issues',
-                    value: activeCount,
-                    icon: Activity,
-                    colorClass: 'text-amber-400 bg-amber-950/20 border-amber-900/30'
-                  },
-                  {
-                    label: 'Resolved Issues',
-                    value: resolvedCount,
-                    icon: CheckCircle2,
-                    colorClass: 'text-emerald-400 bg-emerald-950/20 border-emerald-900/30'
-                  },
-                  {
-                    label: 'Karma Gained',
-                    value: karmaScore,
-                    icon: Award,
-                    colorClass: 'text-purple-400 bg-purple-950/20 border-purple-900/30'
-                  }
-                ].map(stat => (
-                  <Card key={stat.label} className="bg-card border-border">
-                    <CardContent className="p-4 flex flex-col justify-between h-24">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-muted-foreground font-medium tracking-tight truncate leading-none">
-                          {stat.label}
-                        </span>
-                        <div className={`p-1.5 rounded-lg border ${stat.colorClass.split(' ').slice(1).join(' ')}`}>
-                          <stat.icon className={`w-3.5 h-3.5 ${stat.colorClass.split(' ')[0]}`} />
-                        </div>
+                  { label: 'Total Reports', value: totalCount, icon: CheckSquare, text: 'text-[#58a6ff]', glow: 'bg-[#2f81f7]', chip: 'bg-[#2f81f7]/10 border-[#2f81f7]/20', trend: `${activeCount} in flight` },
+                  { label: 'Active Issues', value: activeCount, icon: Activity, text: 'text-amber-400', glow: 'bg-amber-500', chip: 'bg-amber-500/10 border-amber-500/20', trend: totalCount > 0 ? `${Math.round((activeCount / totalCount) * 100)}% of total` : 'None yet' },
+                  { label: 'Resolved', value: resolvedCount, icon: CheckCircle2, text: 'text-emerald-400', glow: 'bg-emerald-500', chip: 'bg-emerald-500/10 border-emerald-500/20', trend: `${resolutionRate}% resolution rate` },
+                  { label: 'Karma', value: karmaScore, icon: Award, text: 'text-purple-400', glow: 'bg-purple-500', chip: 'bg-purple-500/10 border-purple-500/20', trend: karmaLvl.level === 4 ? 'Max level' : `${karmaToNext} to next` },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                    whileHover={{ y: -2 }}
+                    className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-card/40 hover:bg-card/70 hover:border-white/[0.18] backdrop-blur-md p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-colors"
+                  >
+                    <div className={`pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${stat.glow}`} />
+                    <div className="relative flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground truncate">
+                        {stat.label}
+                      </span>
+                      <div className={`p-1.5 rounded-lg border ${stat.chip}`}>
+                        <stat.icon className={`w-3.5 h-3.5 ${stat.text}`} />
                       </div>
-                      <p className="text-xl font-bold text-foreground tracking-tight leading-none mt-2">
-                        {stat.value}
-                      </p>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <p className="relative mt-3 text-3xl font-semibold tracking-tight text-foreground leading-none">
+                      {stat.value}
+                    </p>
+                    <p className={`relative mt-2 text-[10px] font-mono ${stat.text} flex items-center gap-1`}>
+                      <TrendingUp className="w-3 h-3" />
+                      {stat.trend}
+                    </p>
+                  </motion.div>
                 ))}
               </div>
 
+              {/* Karma balance bar */}
+              <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-card/40 backdrop-blur-md p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+                <div className="pointer-events-none absolute -left-8 -bottom-8 h-24 w-24 rounded-full bg-purple-500 blur-3xl opacity-15" />
+                <div className="relative flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Civic Level {karmaLvl.level}</p>
+                    <p className="mt-1 text-sm font-semibold tracking-tight text-foreground">{karmaLvl.name}</p>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {karmaScore}{karmaLvl.level === 4 ? '' : ` / ${karmaLvl.max}`}
+                  </span>
+                </div>
+                <div className="relative mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${karmaProgress}%` }}
+                    transition={{ duration: 0.9, ease: 'easeOut' }}
+                    className="h-full rounded-full bg-gradient-to-r from-purple-600 to-[#2f81f7]"
+                  />
+                </div>
+                <p className="relative mt-2 text-[10px] text-muted-foreground">
+                  {karmaLvl.level === 4 ? 'You have reached the highest civic level.' : `${karmaToNext} karma to reach ${karmaLvl.next}`}
+                </p>
+              </div>
             </div>
 
             {/* "Your Community Needs You" Section (Moved to Left Column) */}
             {profile?.home_location && nearbyReviews.length > 0 && (
-              <div className="bg-card border border-border rounded-2xl p-4 space-y-4 shadow-[0_0_15px_rgba(245,158,11,0.1)] border-amber-500/20">
+              <div className="bg-card/40 backdrop-blur-md border border-amber-500/20 rounded-2xl p-4 space-y-4 shadow-[0_0_30px_-10px_rgba(245,158,11,0.25),inset_0_1px_0_0_rgba(255,255,255,0.04)]">
                 <div className="flex items-center gap-2 mb-2">
                   <ShieldCheck className="w-5 h-5 text-amber-500" />
-                  <h2 className="text-base font-bold text-foreground">Community Review</h2>
+                  <h2 className="text-base font-semibold tracking-tight text-foreground">Community Review</h2>
                   <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 text-[10px] ml-auto">
                     {nearbyReviews.length} Pending
                   </Badge>
                 </div>
                 <div className="space-y-4">
                   {nearbyReviews.map(review => (
-                    <div key={review.id} className="p-4 rounded-xl bg-background/50 border border-border flex flex-col gap-3">
+                    <div key={review.id} className="p-4 rounded-2xl bg-black/20 border border-white/[0.08] hover:border-white/[0.18] transition-colors flex flex-col gap-3">
                       {review.photo_url && (
                         <div className="w-full h-32 rounded-lg overflow-hidden border border-border mb-1">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -979,12 +1010,12 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
           <div className="lg:col-span-2 space-y-6">
 
             {/* Feed Controls Header */}
-            <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
+            <div className="bg-card/40 backdrop-blur-md border border-white/[0.08] rounded-2xl p-4 space-y-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <h2 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
                     Your Civic Reports
-                    <Badge variant="outline" className="bg-background/60 border-border text-muted-foreground text-xs px-2 py-0.5 h-5 font-semibold">
+                    <Badge variant="outline" className="bg-white/[0.04] border-white/[0.1] text-muted-foreground text-[10px] px-2 py-0.5 h-5 font-mono font-semibold">
                       {filteredIssues.length}
                     </Badge>
                   </h2>
@@ -994,7 +1025,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
               {/* Status Segment Tabs */}
               <div className="w-full">
                 {/* Status Segment Control */}
-                <div role="tablist" aria-label="Status Filters" className="flex bg-background/60 p-1 rounded-xl border border-border/80 items-center">
+                <div role="tablist" aria-label="Status Filters" className="flex bg-black/30 p-1 rounded-full border border-white/[0.08] items-center">
                   {[
                     { id: 'all', label: 'All Reports' },
                     { id: 'active', label: 'Active Only' },
@@ -1005,12 +1036,19 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                       role="tab"
                       aria-selected={statusFilter === tab.id}
                       onClick={() => setStatusFilter(tab.id)}
-                      className={`flex-1 text-center text-[10px] font-semibold py-1.5 rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none ${statusFilter === tab.id
-                        ? 'bg-card text-[#0969da] border border-slate-850 shadow-sm'
-                        : 'text-muted-foreground hover:text-muted-foreground'
+                      className={`relative flex-1 text-center text-[11px] font-semibold py-1.5 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-[#2f81f7] focus-visible:outline-none ${statusFilter === tab.id
+                        ? 'text-white'
+                        : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
-                      {tab.label}
+                      {statusFilter === tab.id && (
+                        <motion.span
+                          layoutId="status-tab-pill"
+                          transition={{ type: 'spring', stiffness: 450, damping: 36 }}
+                          className="absolute inset-0 rounded-full bg-[#0969da] shadow-[0_0_18px_-2px_rgba(47,129,247,0.6),inset_0_1px_0_0_rgba(255,255,255,0.2)]"
+                        />
+                      )}
+                      <span className="relative z-10">{tab.label}</span>
                     </button>
                   ))}
                 </div>
@@ -1021,9 +1059,9 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                 <button
                   aria-pressed={categoryFilter === 'all'}
                   onClick={() => setCategoryFilter('all')}
-                  className={`text-[10px] font-semibold px-3 py-1 rounded-full border transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none ${categoryFilter === 'all'
-                    ? 'bg-white text-slate-950 border-white font-bold shadow-sm'
-                    : 'bg-background/40 text-muted-foreground border-border hover:text-muted-foreground'
+                  className={`text-[10px] font-semibold px-3 py-1 rounded-full border transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#2f81f7] focus-visible:outline-none ${categoryFilter === 'all'
+                    ? 'bg-[#2f81f7]/15 text-[#58a6ff] border-[#2f81f7]/40 font-bold shadow-[0_0_14px_-4px_rgba(47,129,247,0.5)]'
+                    : 'bg-white/[0.03] text-muted-foreground border-white/[0.08] hover:text-foreground hover:border-white/[0.18]'
                     }`}
                 >
                   All Categories
@@ -1037,8 +1075,8 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                       aria-pressed={isActive}
                       onClick={() => setCategoryFilter(key)}
                       className={`flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1 rounded-full border transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none ${isActive
-                        ? 'bg-white text-slate-950 border-white font-bold shadow-sm'
-                        : 'bg-background/40 text-muted-foreground border-border hover:text-muted-foreground'
+                        ? 'bg-[#2f81f7]/15 text-[#58a6ff] border-[#2f81f7]/40 font-bold shadow-[0_0_14px_-4px_rgba(47,129,247,0.5)]'
+                        : 'bg-white/[0.03] text-muted-foreground border-white/[0.08] hover:text-foreground hover:border-white/[0.18]'
                         }`}
                     >
                       <Icon className="w-3 h-3" />
@@ -1060,12 +1098,12 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                     className="w-full"
                     key="empty"
                   >
-                    <Card className="bg-card border-border border-dashed py-16 text-center">
+                    <Card className="relative overflow-hidden rounded-2xl ring-0 bg-card/30 backdrop-blur-md border border-dashed border-white/[0.12] py-16 text-center">
                       <CardContent className="flex flex-col items-center">
-                        <div className="w-12 h-12 rounded-full bg-background border border-border flex items-center justify-center mb-4">
-                          <MapPin className="w-6 h-6 text-muted-foreground" />
+                        <div className="w-14 h-14 rounded-2xl bg-[#2f81f7]/10 border border-[#2f81f7]/25 shadow-[0_0_30px_-6px_rgba(47,129,247,0.5)] flex items-center justify-center mb-4">
+                          <MapPin className="w-6 h-6 text-[#58a6ff]" />
                         </div>
-                        <h4 className="text-sm font-semibold text-muted-foreground">No matching reports</h4>
+                        <h4 className="text-base font-semibold tracking-tight text-foreground">No matching reports</h4>
                         <p className="text-[11px] text-muted-foreground max-w-xs mt-1 leading-relaxed">
                           {categoryFilter !== 'all' || statusFilter !== 'all'
                             ? "We couldn't find any reports matching your current filter configuration."
@@ -1078,14 +1116,14 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                               setCategoryFilter('all')
                               setStatusFilter('all')
                             }}
-                            className="mt-4 text-[10px] font-semibold text-[#0969da] hover:text-blue-300 hover:bg-blue-500/10"
+                            className="mt-4 text-[11px] font-semibold text-[#58a6ff] hover:text-blue-300 hover:bg-blue-500/10 rounded-full"
                           >
                             Reset Filter Settings
                           </Button>
                         ) : (
                           <Button
                             onClick={() => router.push('/report')}
-                            className="mt-4 bg-[#2da44e] hover:bg-blue-500 text-foreground text-[10px] font-semibold h-8 px-4"
+                            className="mt-4 bg-[#0969da] hover:bg-[#1a7ae8] text-white text-[11px] font-semibold h-9 px-5 rounded-full shadow-[0_8px_24px_-8px_rgba(47,129,247,0.6)] hover:-translate-y-0.5 transition-all"
                           >
                             Submit First Report
                           </Button>
@@ -1111,6 +1149,11 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                       dotClass: 'bg-slate-500'
                     }
                     const severity = getSeverityLabel(issue.severity)
+                    const slaDays = getSlaDaysRemaining(issue.sla_deadline)
+                    const slaPct = getSlaProgress(issue.created_at, issue.sla_deadline)
+                    const isIssueClosed = issue.status === 'resolved' || issue.status === 'closed'
+                    const slaTone = getSlaTone(slaPct, slaDays, isIssueClosed)
+                    const isPipelineRunning = !!issue.pipeline_stage && issue.pipeline_stage !== 'completed' && !issue.pipeline_stage.endsWith('failed')
 
                     return (
                       <motion.div
@@ -1118,6 +1161,7 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
+                        whileHover={{ y: -2 }}
                         transition={{ duration: 0.2, delay: Math.min(idx * 0.03, 0.3) }}
                         layout
                       >
@@ -1132,62 +1176,116 @@ export function DashboardClient({ user, profile, initialIssues, departments }: P
                               setSelectedIssue(issue)
                             }
                           }}
-                          className="bg-card border-border hover:bg-muted transition-all duration-200 cursor-pointer relative overflow-hidden group/card focus-visible:ring-2 focus-visible:ring-[#0969da] focus-visible:outline-none"
+                          className="rounded-2xl ring-0 border border-white/[0.08] bg-card/40 hover:bg-card/70 hover:border-white/[0.18] backdrop-blur-md shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-[0_8px_30px_-12px_rgba(47,129,247,0.25)] transition-all duration-200 cursor-pointer relative overflow-hidden group/card focus-visible:ring-2 focus-visible:ring-[#2f81f7] focus-visible:outline-none"
                         >
-                          {/* Left Border Category Accent */}
-                          <div className={`absolute left-0 top-0 bottom-0 w-1 ${cat.color.replace('text-', 'bg-')}`} />
+                          {/* Category accent glow */}
+                          <div className={`pointer-events-none absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full blur-2xl opacity-20 ${cat.color.replace('text-', 'bg-')}`} />
 
-                          <CardContent className="p-4 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                              {/* Category Circle Icon or Uploaded Image */}
-                              {issue.photo_url ? (
-                                <img
-                                  src={issue.photo_url}
-                                  alt={issue.title || 'Issue'}
-                                  className="w-10 h-10 rounded-xl object-cover border border-border shadow-inner shrink-0"
-                                />
-                              ) : issue.video_url ? (
-                                <div className="w-10 h-10 rounded-xl bg-black border border-border flex items-center justify-center shrink-0 shadow-inner overflow-hidden relative">
-                                  <video src={issue.video_url} className="w-full h-full object-cover opacity-70" />
-                                </div>
-                              ) : (
-                                <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-inner ${cat.bgColor} ${cat.borderColor}`}>
-                                  <CatIcon className={`w-5 h-5 ${cat.color}`} />
-                                </div>
-                              )}
-
-                              {/* Title, Address, Date */}
-                              <div className="min-w-0 flex-1">
-                                <h3 className="text-xs font-semibold text-foreground truncate leading-tight group-hover/card:text-[#0969da] transition-colors">
-                                  {issue.title || issue.description?.slice(0, 60) + '...'}
-                                </h3>
-
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
-                                  <div className="flex items-center gap-1 text-muted-foreground shrink-0">
-                                    <MapPin className="w-3 h-3 text-muted-foreground" />
-                                    <span className="text-[10px] max-w-[150px] sm:max-w-[220px] truncate">
-                                      {issue.address || 'Location recorded'}
-                                    </span>
+                          <CardContent className="p-4 flex flex-col gap-3.5">
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                                {/* Category Icon or Uploaded Media */}
+                                {issue.photo_url ? (
+                                  <img
+                                    src={issue.photo_url}
+                                    alt={issue.title || 'Issue'}
+                                    className="w-12 h-12 rounded-xl object-cover border border-white/10 shadow-inner shrink-0"
+                                  />
+                                ) : issue.video_url ? (
+                                  <div className="w-12 h-12 rounded-xl bg-black border border-white/10 flex items-center justify-center shrink-0 shadow-inner overflow-hidden relative">
+                                    <video src={issue.video_url} className="w-full h-full object-cover opacity-70" />
                                   </div>
+                                ) : (
+                                  <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-inner ${cat.bgColor} ${cat.borderColor}`}>
+                                    <CatIcon className={`w-5 h-5 ${cat.color}`} />
+                                  </div>
+                                )}
 
-                                  <div className="flex items-center gap-1 text-muted-foreground shrink-0">
-                                    <Clock className="w-3 h-3 text-muted-foreground" />
-                                    <span className="text-[10px]">
-                                      {new Date(issue.created_at).toLocaleDateString('en-IN', {
-                                        day: 'numeric',
-                                        month: 'short'
-                                      })}
-                                    </span>
+                                {/* Title, Address, Date */}
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="text-sm font-semibold tracking-tight text-foreground truncate leading-tight group-hover/card:text-[#58a6ff] transition-colors">
+                                    {issue.title || issue.description?.slice(0, 60) + '...'}
+                                  </h3>
+
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1.5">
+                                    <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+                                      <MapPin className="w-3 h-3" />
+                                      <span className="text-[11px] max-w-[150px] sm:max-w-[240px] truncate">
+                                        {issue.address || 'Location recorded'}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+                                      <Clock className="w-3 h-3" />
+                                      <span className="text-[11px] font-mono">
+                                        {new Date(issue.created_at).toLocaleDateString('en-IN', {
+                                          day: 'numeric',
+                                          month: 'short'
+                                        })}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
+
+                              <ChevronRight className="w-4 h-4 shrink-0 text-muted-foreground group-hover/card:text-foreground transition-all group-hover/card:translate-x-0.5 duration-200" />
                             </div>
 
-                            {/* Status, Severity & Chevron */}
-                            <div className="flex items-center gap-3 shrink-0">
-
-                              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/card:text-foreground transition-colors group-hover/card:translate-x-0.5 duration-200" />
+                            {/* Chips: category, status, severity, pipeline */}
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cat.bgColor} ${cat.borderColor} ${cat.color}`}>
+                                <CatIcon className="w-2.5 h-2.5" />
+                                {cat.label}
+                              </span>
+                              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${status.bgClass} ${status.borderClass} ${status.textClass}`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${status.dotClass}`} />
+                                {status.label}
+                              </span>
+                              {issue.severity ? (
+                                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${severity.color}`}>
+                                  <AlertTriangle className="w-2.5 h-2.5" />
+                                  {severity.text}
+                                  <span className="font-mono opacity-70">{issue.severity}/10</span>
+                                </span>
+                              ) : null}
+                              {isPipelineRunning && (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#2f81f7]/30 bg-[#2f81f7]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#58a6ff]">
+                                  <span className="relative flex h-1.5 w-1.5">
+                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2f81f7] opacity-75" />
+                                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#2f81f7]" />
+                                  </span>
+                                  AI Processing
+                                </span>
+                              )}
                             </div>
+
+                            {/* SLA progress */}
+                            {slaPct !== null && (
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                    {isIssueClosed ? 'SLA' : 'SLA Window'}
+                                  </span>
+                                  <span className={`text-[10px] font-mono ${slaTone.text}`}>
+                                    {isIssueClosed
+                                      ? 'Completed'
+                                      : slaDays !== null && slaDays < 0
+                                        ? `Overdue ${Math.abs(slaDays)}d`
+                                        : slaDays === 0
+                                          ? 'Due today'
+                                          : `${slaDays}d left`}
+                                  </span>
+                                </div>
+                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${isIssueClosed ? 100 : slaPct}%` }}
+                                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                                    className={`h-full rounded-full ${slaTone.bar}`}
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       </motion.div>
