@@ -132,8 +132,8 @@ function LoginForm() {
       </div>
 
       {/* Art side */}
-      <div className="relative hidden overflow-hidden bg-[#17140f] p-10 lg:flex lg:flex-col lg:justify-end">
-        <div className="absolute left-10 top-10 grid w-[78%] grid-cols-2 gap-3">
+      <div className="relative hidden overflow-hidden bg-[#17140f] p-10 lg:flex lg:flex-col lg:justify-between lg:gap-6">
+        <div className="grid w-full max-w-xl grid-cols-2 gap-3">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="col-span-2 rounded-3xl bg-sun p-6">
             <MapPin className="h-5 w-5" />
             <p className="mt-6 font-heading text-3xl font-semibold tracking-tight">Report in seconds</p>
@@ -148,6 +148,36 @@ function LoginForm() {
             <p className="mt-6 font-heading text-xl font-semibold tracking-tight">Verified fixes</p>
           </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="w-full max-w-xl rounded-3xl bg-[#f5f0e1] p-6"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-black/50">Example report journey</p>
+            <span className="rounded-full bg-olive px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">Resolved</span>
+          </div>
+          <p className="mt-2 font-heading text-xl font-semibold tracking-tight">Pothole near the bus stop</p>
+          <ol className="mt-5 space-y-3">
+            {[
+              { t: 'Reported', d: 'Photo + location captured', c: 'bg-sun' },
+              { t: 'Classified', d: 'Road damage, severity scored by AI', c: 'bg-blush' },
+              { t: 'Routed', d: 'Sent to the right department', c: 'bg-sky' },
+              { t: 'Fixed', d: 'Closed with a shareable receipt', c: 'bg-olive' },
+            ].map((step, i) => (
+              <li key={step.t} className="flex items-center gap-3">
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.c}`}>{i + 1}</span>
+                <div>
+                  <p className="text-sm font-semibold leading-tight">{step.t}</p>
+                  <p className="text-xs text-black/55">{step.d}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </motion.div>
+
         <p className="relative max-w-sm font-heading text-3xl font-semibold leading-tight tracking-tight text-[#f5f0e1]">
           A better city starts with one report.
         </p>
