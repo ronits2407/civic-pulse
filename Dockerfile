@@ -1,11 +1,15 @@
+FROM oven/bun:1.4.3-alpine AS bun
+
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat unzip
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 COPY package.json bun.lock ./
-RUN npm install -g bun && bun install --frozen-lockfile
+RUN bun install --frozen-lockfile
 
 FROM node:20-alpine AS builder
 WORKDIR /app
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -27,10 +31,12 @@ ENV NEXT_PUBLIC_MAPBOX_TOKEN=$NEXT_PUBLIC_MAPBOX_TOKEN
 ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=$NEXT_PUBLIC_VAPID_PUBLIC_KEY
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 
-RUN npm install -g bun && bun run build
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN bun run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
@@ -43,7 +49,7 @@ RUN adduser --system --uid 1001 nextjs
 # The official Next.js permanent fix for sharp in standalone Docker mode:
 # Explicitly install sharp in the runner stage so it natively pulls the Alpine linuxmusl-x64 binaries.
 ENV NEXT_SHARP_PATH=/app/node_modules/sharp
-RUN npm install sharp@0.35.2
+RUN bun add sharp@0.35.2
 
 # Copy built output
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public

@@ -1,0 +1,17 @@
+.gcloudignore
+.git
+.github
+node_modules
+.next
+out
+mobile
+.env
+.env.*
+!.env.example
+sa-key.json
+cloudrun-env.*
+*.log
+*.tsbuildinfo
+.agents
+.gemini
+supabase/.temp

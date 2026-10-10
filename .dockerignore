@@ -18,6 +18,10 @@ out
 .env.development
 .env.staging
 .env
+.env.*
+!.env.example
+sa-key.json
+cloudrun-env.*
 
 # Docker config
 Dockerfile
@@ -37,3 +41,6 @@ bun.lockb
 .gemini
 tests
 migrations
+mobile
+supabase/.temp
+*.tsbuildinfo
